@@ -6,7 +6,6 @@ import {
   Search, 
   Layers, 
   HardDrive, 
-  Filter,
   LayoutGrid,
   Square,
   Check
@@ -72,19 +71,9 @@ export const DocumentSelectorBar: React.FC<DocumentSelectorBarProps> = ({
   onToggleCollapse,
 }) => {
   const [localSearch, setLocalSearch] = useState('');
-  const [filterDiscipline, setFilterDiscipline] = useState<string>('all');
   const [viewLayout, setViewLayout] = useState<'large' | 'grid'>('large');
 
-  // Extrair disciplinas disponíveis na lista atual
-  const disciplines = useMemo(() => {
-    const set = new Set<string>();
-    documents.forEach((d) => {
-      if (d.discipline) set.add(d.discipline);
-    });
-    return Array.from(set);
-  }, [documents]);
-
-  // Filtragem local rápida
+  // Filtragem local rápida por busca
   const filteredList = useMemo(() => {
     return documents.filter((doc) => {
       const matchSearch =
@@ -94,12 +83,9 @@ export const DocumentSelectorBar: React.FC<DocumentSelectorBarProps> = ({
         doc.discipline?.toLowerCase().includes(localSearch.toLowerCase()) ||
         doc.equipmentCode?.toLowerCase().includes(localSearch.toLowerCase());
 
-      const matchDiscipline =
-        filterDiscipline === 'all' || doc.discipline === filterDiscipline;
-
-      return matchSearch && matchDiscipline;
+      return matchSearch;
     });
-  }, [documents, localSearch, filterDiscipline]);
+  }, [documents, localSearch]);
 
   // Se estiver recolhido, exibe barra vertical compacta
   if (isCollapsed) {
@@ -187,8 +173,8 @@ export const DocumentSelectorBar: React.FC<DocumentSelectorBarProps> = ({
         </div>
       </div>
 
-      {/* Busca e Filtros Rápidos */}
-      <div className="p-2.5 border-b border-zinc-800 bg-zinc-900/60 space-y-2">
+      {/* Busca Rápida */}
+      <div className="p-2.5 border-b border-zinc-800 bg-zinc-900/60">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
@@ -207,37 +193,6 @@ export const DocumentSelectorBar: React.FC<DocumentSelectorBarProps> = ({
             </button>
           )}
         </div>
-
-        {disciplines.length > 1 && (
-          <div className="flex items-center gap-1.5 text-[11px] overflow-x-auto pb-0.5 no-scrollbar">
-            <span className="text-zinc-500 shrink-0 flex items-center gap-0.5 text-[10px]">
-              <Filter className="w-2.5 h-2.5" />
-            </span>
-            <button
-              onClick={() => setFilterDiscipline('all')}
-              className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-colors ${
-                filterDiscipline === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-              }`}
-            >
-              Todas
-            </button>
-            {disciplines.map((disc) => (
-              <button
-                key={disc}
-                onClick={() => setFilterDiscipline(disc)}
-                className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-colors ${
-                  filterDiscipline === disc
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                }`}
-              >
-                {disc}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Lista / Grade de Miniaturas das Pranchas */}

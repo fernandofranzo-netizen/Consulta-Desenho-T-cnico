@@ -3,9 +3,10 @@ import {
   TECHNICAL_CATEGORIES, 
   DocumentCategory,
   CategoryHierarchyItem,
-  SubcategoryItem
+  SubcategoryItem,
+  isUpperCaseCategory
 } from '../types';
-import { getAccessToken } from './googleAuth';
+import { getAccessToken, clearStoredToken, getStoredAccount } from './googleAuth';
 
 export const DRIVE_ROOT_FOLDER_NAME = 'CONSULTA IMAGENS E DESENHO TÉCNICO';
 const DATABASE_FILENAME = 'techview_database.json';
@@ -79,21 +80,14 @@ function formatFileSize(bytesStr?: string | number): string {
 
 function getCategoryPrefix(category: string): string {
   const map: Record<string, string> = {
-    'Administração': 'ADM',
-    'Almoxarifado': 'ALM',
-    'Área Externa': 'EXT',
-    'Central Água Gelada': 'CAG',
-    'Central Ar Comprimido': 'CAC',
-    'Estoque': 'EST',
-    'Kampf I': 'KMP1',
-    'Kampf II': 'KMP2',
-    'Rotomec': 'ROT',
-    'Sistema Combate à Incêndio': 'SCI',
-    'Subestação': 'SUB',
-    'Varex I': 'VRX1',
-    'Varex II': 'VRX2',
+    'KAMPF I': 'KMP1',
+    'KAMPF II': 'KMP2',
+    'ROTOMEC': 'ROT',
+    'SUBESTAÇÃO': 'SUB',
+    'VAREX I': 'VRX1',
+    'VAREX II': 'VRX2',
   };
-  return map[category] || category.slice(0, 3).toUpperCase() || 'TEC';
+  return map[category] || category.slice(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'TEC';
 }
 
 function deriveTechnicalCode(fileName: string, category: string, subcategory?: string, index: number = 0): string {
@@ -184,6 +178,11 @@ export const DriveSyncService = {
 
     const response = await fetch(url, { ...options, headers });
     if (!response.ok) {
+      if (response.status === 401) {
+        clearStoredToken();
+        const acc = getStoredAccount();
+        throw new Error(`Sessão do Google Drive expirada. Clique para renovar a autorização da conta permanente ${acc.email}.`);
+      }
       const errText = await response.text();
       let parsedErr: any = null;
       try {
@@ -314,11 +313,15 @@ export const DriveSyncService = {
     const existingMap: Record<string, string> = {};
     const driveFolderList: Array<{ id: string; name: string }> = searchData.files || [];
 
-    // Map each Drive folder by normalized name to our canonical category list
+    // Map each Drive folder: ONLY KEEP FOLDERS WHOSE NAME IS IN UPPERCASE!
     for (const df of driveFolderList) {
+      if (!isUpperCaseCategory(df.name)) {
+        continue;
+      }
+
       const normDriveName = this.normalizeName(df.name);
       
-      // Match against standard 13 categories
+      // Match against uppercase categories
       let matchedCategory = TECHNICAL_CATEGORIES.find(
         (cat) => this.normalizeName(cat) === normDriveName
       );
@@ -326,14 +329,14 @@ export const DriveSyncService = {
       if (matchedCategory) {
         existingMap[matchedCategory] = df.id;
       } else {
-        // Also keep custom categories discovered in Drive
+        // Keep custom uppercase categories discovered in Drive
         existingMap[df.name] = df.id;
       }
     }
 
-    // Create baseline 13 subfolders if missing in Drive
+    // Verify baseline uppercase subfolders if missing in Drive
     for (const cat of TECHNICAL_CATEGORIES) {
-      if (!existingMap[cat]) {
+      if (isUpperCaseCategory(cat) && !existingMap[cat]) {
         try {
           const createRes = await this.fetchWithAuth('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
             method: 'POST',
@@ -406,10 +409,12 @@ export const DriveSyncService = {
   ): Promise<SyncCategoriesResult> {
     const subfolderMap = await this.syncCategorySubfolders();
 
-    // All categories found (combining standard 13 and any extra created in Drive)
+    // All categories found (strictly uppercase categories only)
     const allCategoryNames = Array.from(
       new Set([...TECHNICAL_CATEGORIES, ...Object.keys(subfolderMap)])
-    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    )
+      .filter((cat) => isUpperCaseCategory(cat))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
     const categoryStats: Record<string, CategoryFolderStats> = {};
     const categoriesHierarchy: CategoryHierarchyItem[] = [];

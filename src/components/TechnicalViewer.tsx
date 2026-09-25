@@ -4,24 +4,14 @@ import {
   ZoomOut, 
   Maximize2, 
   Minimize2, 
-  RotateCcw, 
   RotateCw,
-  Grid, 
-  Layers, 
-  Ruler, 
-  MessageSquarePlus, 
-  Download, 
-  HardDrive, 
-  Check, 
-  FileText, 
-  Info, 
-  Eye, 
-  Crosshair,
   Compass,
-  ExternalLink
+  ExternalLink,
+  Crosshair,
+  FileText,
+  MessageSquarePlus
 } from 'lucide-react';
 import { TechnicalDocument, ViewerTheme, Annotation } from '../types';
-import { exportDocumentToPDF } from '../services/pdfExport';
 
 interface TechnicalViewerProps {
   document: TechnicalDocument | null;
@@ -64,17 +54,11 @@ export const TechnicalViewer: React.FC<TechnicalViewerProps> = ({
   const [pendingAnnotationPoint, setPendingAnnotationPoint] = useState<{ x: number; y: number } | null>(null);
   const [annotationTitle, setAnnotationTitle] = useState('');
   const [annotationText, setAnnotationText] = useState('');
-  const [isExportingPDF, setIsExportingPDF] = useState(false);
-  const [pdfViewMode, setPdfViewMode] = useState<'reader' | 'blueprint'>('reader');
-
   // Reset zoom & pan when document changes
   useEffect(() => {
     resetView();
     setMeasurePoints([]);
     setActiveMeasurement(null);
-    if (document?.isPdf) {
-      setPdfViewMode('reader');
-    }
   }, [document?.id]);
 
   // Reset View to fit
@@ -228,25 +212,6 @@ export const TechnicalViewer: React.FC<TechnicalViewerProps> = ({
     return false;
   };
 
-  // Handle PDF Export
-  const handleExportPDF = async () => {
-    if (!document) return;
-    try {
-      setIsExportingPDF(true);
-      await exportDocumentToPDF(document, {
-        format: 'a3',
-        orientation: 'landscape',
-        includeCarimbo: true,
-        includeNotes: true,
-        theme,
-      });
-    } catch (err) {
-      console.error('Erro ao exportar PDF:', err);
-    } finally {
-      setIsExportingPDF(false);
-    }
-  };
-
   if (!document) {
     return (
       <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500">
@@ -276,223 +241,10 @@ export const TechnicalViewer: React.FC<TechnicalViewerProps> = ({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Top Floating Technical HUD (Toolbar) */}
-      <div className="absolute top-3 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
-        {/* Left HUD: Document quick info badge */}
-        <div className="pointer-events-auto flex items-center gap-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-mono-tech text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
-              {document.code}
-            </span>
-            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-[260px] sm:max-w-[400px]">
-              {document.title}
-            </span>
-          </div>
-
-          <div className="h-3 w-px bg-zinc-300 dark:bg-zinc-700 mx-1" />
-
-          <span className="text-[11px] text-zinc-500 font-mono-tech">
-            {document.scale} • {document.revision}
-          </span>
-
-          {document.isOfflineCached && (
-            <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded font-medium border border-emerald-200 dark:border-emerald-800/60">
-              <Check className="w-3 h-3" />
-              Offline
-            </span>
-          )}
-        </div>
-
-        {/* Right HUD: Controls & Tools */}
-        <div className="pointer-events-auto flex items-center gap-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-          {/* Tool mode: Pan */}
-          <button
-            title="Modo Pan (Arrastar folha)"
-            onClick={() => setActiveTool('pan')}
-            className={`p-1.5 rounded-md transition text-xs flex items-center gap-1 font-medium ${
-              activeTool === 'pan'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <Eye className="w-4 h-4" />
-            <span className="hidden md:inline">Visualizar</span>
-          </button>
-
-          {/* Tool mode: Measure */}
-          <button
-            title="Régua de Medição Virtual"
-            onClick={() => {
-              setActiveTool('measure');
-              setMeasurePoints([]);
-              setActiveMeasurement(null);
-            }}
-            className={`p-1.5 rounded-md transition text-xs flex items-center gap-1 font-medium ${
-              activeTool === 'measure'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <Ruler className="w-4 h-4" />
-            <span className="hidden md:inline">Medição</span>
-          </button>
-
-          {/* Tool mode: Annotate */}
-          <button
-            title="Adicionar Nota ou Ponto de Inspeção"
-            onClick={() => setActiveTool('annotate')}
-            className={`p-1.5 rounded-md transition text-xs flex items-center gap-1 font-medium ${
-              activeTool === 'annotate'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <MessageSquarePlus className="w-4 h-4" />
-            <span className="hidden md:inline">Anotação</span>
-          </button>
-
-          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700 mx-0.5" />
-
-          {/* Grid Toggle */}
-          <button
-            title="Alternar Grade Milimétrica CAD"
-            onClick={() => setShowGrid(!showGrid)}
-            className={`p-1.5 rounded-md transition ${
-              showGrid
-                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <Grid className="w-4 h-4" />
-          </button>
-
-          {/* Theme Switcher: White / Dark / Blueprint */}
-          <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-md">
-            <button
-              title="Fundo Papel Técnico Branco"
-              onClick={() => onThemeChange('white')}
-              className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition ${
-                theme === 'white' ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-500'
-              }`}
-            >
-              Papel
-            </button>
-            <button
-              title="Fundo CAD Escuro"
-              onClick={() => onThemeChange('dark')}
-              className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition ${
-                theme === 'dark' ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-500'
-              }`}
-            >
-              CAD
-            </button>
-            <button
-              title="Fundo Blueprint Azul Clássico"
-              onClick={() => onThemeChange('blueprint')}
-              className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition ${
-                theme === 'blueprint' ? 'bg-blue-900 text-blue-100 shadow-xs' : 'text-zinc-500'
-              }`}
-            >
-              Blueprint
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700 mx-0.5" />
-
-          {/* Offline Cache toggle */}
-          <button
-            title={document.isOfflineCached ? 'Salvo no cache offline local' : 'Salvar para consulta offline'}
-            onClick={() => onToggleOffline(document)}
-            className={`p-1.5 rounded-md transition text-xs flex items-center gap-1 ${
-              document.isOfflineCached
-                ? 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <HardDrive className="w-4 h-4" />
-            <span className="hidden lg:inline">{document.isOfflineCached ? 'Em Cache' : 'Cache Offline'}</span>
-          </button>
-
-          {/* PDF View Mode Switcher */}
-          {document.isPdf && (
-            <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs">
-              <button
-                onClick={() => setPdfViewMode('reader')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition ${
-                  pdfViewMode === 'reader'
-                    ? 'bg-red-600 text-white shadow-xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
-                }`}
-              >
-                Leitor PDF
-              </button>
-              <button
-                onClick={() => setPdfViewMode('blueprint')}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
-                  pdfViewMode === 'blueprint'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
-                }`}
-              >
-                Planta HD
-              </button>
-            </div>
-          )}
-
-          {/* Export PDF Button */}
-          <button
-            title="Exportar Folha Técnica em PDF (A3/A4)"
-            onClick={handleExportPDF}
-            disabled={isExportingPDF}
-            className="p-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-xs font-medium transition flex items-center gap-1 shadow-xs disabled:opacity-50"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">{isExportingPDF ? 'Gerando...' : 'Exportar PDF'}</span>
-          </button>
-
-          {/* Specs / Info toggle */}
-          <button
-            title="Ver Especificações e Memorial Descritivo"
-            onClick={() => setShowSpecsPanel(!showSpecsPanel)}
-            className={`p-1.5 rounded-md transition ${
-              showSpecsPanel
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
-                : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <Info className="w-4 h-4" />
-          </button>
-
-          {/* Open in Google Drive */}
-          {document.driveWebViewLink && (
-            <a
-              href={document.driveWebViewLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Abrir arquivo original no Google Drive"
-              className="p-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1"
-            >
-              <ExternalLink className="w-4 h-4 text-blue-500" />
-            </a>
-          )}
-
-          {/* Fullscreen Toggle */}
-          <button
-            title={isFullscreen ? 'Sair da Tela Cheia' : 'Visualização em Tela Cheia'}
-            onClick={toggleFullscreen}
-            className="p-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-
       {/* Main Drawing Canvas / High Resolution Viewport */}
       <div 
         className={`w-full h-full flex items-center justify-center transition-all ${
-          activeTool === 'pan' 
-            ? isDragging ? 'cursor-grabbing' : 'cursor-grab' 
-            : activeTool === 'measure' ? 'cursor-crosshair' : 'cursor-pointer'
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
         <div
@@ -505,7 +257,7 @@ export const TechnicalViewer: React.FC<TechnicalViewerProps> = ({
           className="relative max-w-none max-h-none shadow-2xl rounded-sm border border-zinc-300/40 dark:border-zinc-700/60 bg-white"
         >
           {/* Drawing Content */}
-          {document.isPdf && pdfViewMode === 'reader' && document.driveFileId ? (
+          {document.isPdf && !document.svgContent && document.driveFileId ? (
             <div className="w-[1100px] h-[720px] bg-zinc-900 rounded-sm overflow-hidden flex flex-col pointer-events-auto">
               <div className="bg-zinc-800 text-white px-3 py-1.5 flex items-center justify-between text-xs border-b border-zinc-700">
                 <div className="flex items-center gap-2 truncate">
@@ -680,6 +432,17 @@ export const TechnicalViewer: React.FC<TechnicalViewerProps> = ({
             {rotation !== 0 && (
               <span className="text-[10px] font-mono-tech font-bold leading-none">{rotation}°</span>
             )}
+          </button>
+
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700 mx-1" />
+
+          {/* Fullscreen Toggle */}
+          <button
+            title={isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia'}
+            onClick={toggleFullscreen}
+            className="p-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+          >
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
 

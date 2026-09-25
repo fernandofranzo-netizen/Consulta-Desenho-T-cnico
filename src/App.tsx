@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   TechnicalDocument, 
   FilterState, 
   ViewerTheme, 
   DocumentCategory, 
   Annotation,
-  TECHNICAL_CATEGORIES
+  TECHNICAL_CATEGORIES,
+  isUpperCaseCategory
 } from './types';
 import { SAMPLE_DOCUMENTS } from './data/sampleDocuments';
 import { OfflineStorageService } from './services/offlineStorage';
@@ -37,6 +38,8 @@ export default function App() {
     user: null,
     accessToken: null,
     isAuthenticated: false,
+    isPermanentlyLinked: true,
+    permanentEmail: 'manutencaolaminor@gmail.com',
   });
   const [isAutoSyncingDrive, setIsAutoSyncingDrive] = useState<boolean>(false);
   const [lastDriveSyncTime, setLastDriveSyncTime] = useState<string | null>(() => {
@@ -67,7 +70,7 @@ export default function App() {
   // Filters State
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '',
-    category: 'Todos',
+    category: 'TODOS',
     type: 'all',
     status: 'all',
     onlyOffline: false,
@@ -113,48 +116,58 @@ export default function App() {
   useEffect(() => {
     async function loadStoredDocuments() {
       const categoryMigrationMap: Record<string, DocumentCategory> = {
-        'Mecânica': 'Rotomec',
-        'Elétrica': 'Subestação',
-        'Tubulação & P&ID': 'Central Água Gelada',
-        'Civil & Estruturas': 'Área Externa',
-        'Automação': 'Varex II',
-        'Inspeção em Campo': 'Kampf I',
+        'Mecânica': 'ROTOMEC',
+        'Rotomec': 'ROTOMEC',
+        'Elétrica': 'SUBESTAÇÃO',
+        'Subestação': 'SUBESTAÇÃO',
+        'Kampf I': 'KAMPF I',
+        'Kampf II': 'KAMPF II',
+        'Varex I': 'VAREX I',
+        'Varex II': 'VAREX II',
+        'Automação': 'VAREX II',
+        'Inspeção em Campo': 'KAMPF I',
       };
 
       try {
         const storedDocs = await OfflineStorageService.getOfflineDocuments();
         if (storedDocs && storedDocs.length > 0) {
-          // Migrate old categories to new industrial categories if needed
-          const migratedDocs = storedDocs.map((doc) => {
-            if (categoryMigrationMap[doc.category]) {
-              const updatedDoc = {
-                ...doc,
-                category: categoryMigrationMap[doc.category],
-              };
-              OfflineStorageService.saveDocument(updatedDoc);
-              return updatedDoc;
-            }
-            return doc;
-          });
+          // Migrate old categories to new industrial categories and keep ONLY uppercase categories
+          const migratedDocs = storedDocs
+            .map((doc) => {
+              if (categoryMigrationMap[doc.category]) {
+                const updatedDoc = {
+                  ...doc,
+                  category: categoryMigrationMap[doc.category],
+                };
+                OfflineStorageService.saveDocument(updatedDoc);
+                return updatedDoc;
+              }
+              return doc;
+            })
+            .filter((doc) => isUpperCaseCategory(doc.category));
 
           // Merge with sample documents to ensure any new sample documents are present
           const existingIds = new Set(migratedDocs.map((d) => d.id));
-          const missingSamples = SAMPLE_DOCUMENTS.filter((s) => !existingIds.has(s.id));
+          const missingSamples = SAMPLE_DOCUMENTS.filter(
+            (s) => !existingIds.has(s.id) && isUpperCaseCategory(s.category)
+          );
           const combined = [...migratedDocs, ...missingSamples];
           setDocuments(combined);
           setSelectedDocumentId(combined[0]?.id || null);
         } else {
-          // First time seed
-          setDocuments(SAMPLE_DOCUMENTS);
-          setSelectedDocumentId(SAMPLE_DOCUMENTS[0]?.id || null);
-          for (const doc of SAMPLE_DOCUMENTS) {
+          // First time seed (strictly uppercase categories)
+          const initialSamples = SAMPLE_DOCUMENTS.filter((d) => isUpperCaseCategory(d.category));
+          setDocuments(initialSamples);
+          setSelectedDocumentId(initialSamples[0]?.id || null);
+          for (const doc of initialSamples) {
             await OfflineStorageService.saveDocument(doc);
           }
         }
       } catch (err) {
         console.warn('Fallback to in-memory sample documents:', err);
-        setDocuments(SAMPLE_DOCUMENTS);
-        setSelectedDocumentId(SAMPLE_DOCUMENTS[0]?.id || null);
+        const fallbackSamples = SAMPLE_DOCUMENTS.filter((d) => isUpperCaseCategory(d.category));
+        setDocuments(fallbackSamples);
+        setSelectedDocumentId(fallbackSamples[0]?.id || null);
       }
     }
 
@@ -172,6 +185,11 @@ export default function App() {
   // Filter & Search computation
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
+      // 0. Ensure only uppercase categories are accepted
+      if (!isUpperCaseCategory(doc.category)) {
+        return false;
+      }
+
       // 1. Simulated or actual offline filter
       if (filters.onlyOffline && !doc.isOfflineCached) {
         return false;
@@ -182,8 +200,8 @@ export default function App() {
         return false;
       }
 
-      // 2. Category filter
-      if (filters.category !== 'Todos' && doc.category !== filters.category) {
+      // 2. Category filter (supports both 'Todos' and 'TODOS')
+      if (filters.category !== 'Todos' && filters.category !== 'TODOS' && doc.category !== filters.category) {
         return false;
       }
 
@@ -224,21 +242,24 @@ export default function App() {
 
   // Keep selected document synced
   const currentDocument = useMemo(() => {
-    return documents.find((d) => d.id === selectedDocumentId) || filteredDocuments[0] || null;
+    return documents.find((d) => d.id === selectedDocumentId && isUpperCaseCategory(d.category)) || filteredDocuments[0] || null;
   }, [documents, selectedDocumentId, filteredDocuments]);
 
-  // Category counts and subcategories hierarchy
+  // Category counts and subcategories hierarchy (strictly uppercase categories only)
   const categoryHierarchyList = useMemo(() => {
     // Group documents by category and subcategory
     const catMap = new Map<string, { total: number; subcategories: Map<string, number> }>();
 
-    // Seed default categories
+    // Seed default uppercase categories
     TECHNICAL_CATEGORIES.forEach((cat) => {
-      catMap.set(cat, { total: 0, subcategories: new Map() });
+      if (isUpperCaseCategory(cat)) {
+        catMap.set(cat, { total: 0, subcategories: new Map() });
+      }
     });
 
-    // Populate from all documents
+    // Populate from all documents (strictly uppercase categories)
     documents.forEach((d) => {
+      if (!isUpperCaseCategory(d.category)) return;
       if (!catMap.has(d.category)) {
         catMap.set(d.category, { total: 0, subcategories: new Map() });
       }
@@ -249,9 +270,10 @@ export default function App() {
       }
     });
 
-    // Also merge from categoryDriveStats if available
+    // Also merge from categoryDriveStats if available (strictly uppercase categories only)
     if (categoryDriveStats) {
       Object.entries(categoryDriveStats).forEach(([catName, stats]) => {
+        if (!isUpperCaseCategory(catName)) return;
         if (!catMap.has(catName)) {
           catMap.set(catName, { total: stats.filesCount, subcategories: new Map() });
         }
@@ -264,11 +286,14 @@ export default function App() {
       });
     }
 
+    const uppercaseDocCount = documents.filter((d) => isUpperCaseCategory(d.category)).length;
     const items: Array<{ name: string; count: number; subcategories?: Array<{ name: string; count: number; category: string }> }> = [
-      { name: 'Todos', count: documents.length }
+      { name: 'TODOS', count: uppercaseDocCount }
     ];
 
-    const sortedCatNames = Array.from(catMap.keys()).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const sortedCatNames = Array.from(catMap.keys())
+      .filter((catName) => isUpperCaseCategory(catName))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
     for (const catName of sortedCatNames) {
       const data = catMap.get(catName)!;
@@ -365,7 +390,10 @@ export default function App() {
     }
   };
 
-  // Automatic Drive Category Sync Handler
+  const documentsRef = useRef(documents);
+  documentsRef.current = documents;
+
+  // Automatic Drive Category Sync Handler (100% Background & Automatic)
   const handleSyncDriveCategories = useCallback(async (silent = false) => {
     if (!driveAuthState.isAuthenticated || !driveAuthState.accessToken) {
       if (!silent) {
@@ -377,7 +405,7 @@ export default function App() {
 
     try {
       setIsAutoSyncingDrive(true);
-      const result = await DriveSyncService.syncAllCategoriesWithDrive(documents);
+      const result = await DriveSyncService.syncAllCategoriesWithDrive(documentsRef.current);
 
       // Cache newly indexed files in IndexedDB for immediate offline consultation
       for (const doc of result.documents) {
@@ -391,12 +419,12 @@ export default function App() {
 
       if (!silent) {
         showToast(
-          `Sincronização concluída! ${result.totalDriveFiles} arquivos indexados nas 13 categorias do Google Drive.`,
+          `Sincronização concluída! ${result.totalDriveFiles} arquivos indexados nas categorias do Google Drive.`,
           'success'
         );
       } else if (result.newFilesCount > 0) {
         showToast(
-          `${result.newFilesCount} novo(s) documento(s) carregado(s) automaticamente do Google Drive!`,
+          `${result.newFilesCount} novo(s) documento(s) sincronizado(s) automaticamente do Google Drive!`,
           'success'
         );
       }
@@ -408,14 +436,14 @@ export default function App() {
     } finally {
       setIsAutoSyncingDrive(false);
     }
-  }, [driveAuthState.isAuthenticated, driveAuthState.accessToken, documents]);
+  }, [driveAuthState.isAuthenticated, driveAuthState.accessToken]);
 
   // Auto-sync whenever user logs in or auth credentials become valid
   useEffect(() => {
     if (driveAuthState.isAuthenticated && driveAuthState.accessToken) {
       handleSyncDriveCategories(true);
     }
-  }, [driveAuthState.isAuthenticated, driveAuthState.accessToken]);
+  }, [driveAuthState.isAuthenticated, driveAuthState.accessToken, handleSyncDriveCategories]);
 
   // Background sync on window focus (e.g. user returns from Drive tab)
   useEffect(() => {
@@ -428,12 +456,12 @@ export default function App() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [driveAuthState.isAuthenticated, driveAuthState.accessToken, isAutoSyncingDrive, handleSyncDriveCategories]);
 
-  // Periodic automatic sync every 90 seconds
+  // Periodic automatic sync every 30 seconds
   useEffect(() => {
     if (!driveAuthState.isAuthenticated) return;
     const interval = setInterval(() => {
       handleSyncDriveCategories(true);
-    }, 90000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [driveAuthState.isAuthenticated, handleSyncDriveCategories]);
 
@@ -479,7 +507,7 @@ export default function App() {
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenDriveModal={() => setIsDriveModalOpen(true)}
         isDriveConnected={driveAuthState.isAuthenticated}
-        driveUserEmail={driveAuthState.user?.email}
+        driveUserEmail={driveAuthState.user?.email || driveAuthState.permanentEmail || 'manutencaolaminor@gmail.com'}
         isAutoSyncing={isAutoSyncingDrive}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         currentDocument={currentDocument}
@@ -497,7 +525,7 @@ export default function App() {
           onResetFilters={() =>
             setFilters({
               searchQuery: '',
-              category: 'Todos',
+              category: 'TODOS',
               subcategory: 'all',
               type: 'all',
               status: 'all',
@@ -512,6 +540,7 @@ export default function App() {
           onCloseMobile={() => setIsMobileMenuOpen(false)}
           onOpenDriveModal={() => setIsDriveModalOpen(true)}
           isDriveConnected={driveAuthState.isAuthenticated}
+          driveUserEmail={driveAuthState.user?.email || driveAuthState.permanentEmail || 'manutencaolaminor@gmail.com'}
           isAutoSyncing={isAutoSyncingDrive}
           onTriggerSync={() => handleSyncDriveCategories(false)}
           lastSyncTime={lastDriveSyncTime}

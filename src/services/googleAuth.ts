@@ -5,7 +5,9 @@ import {
   GoogleAuthProvider, 
   onAuthStateChanged, 
   User, 
-  signOut 
+  signOut,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -13,66 +15,153 @@ import firebaseConfig from '../../firebase-applet-config.json';
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
+// Enforce browser local persistence across sessions, reboots, and tabs
+try {
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.warn('Configuração de persistência local Firebase:', err);
+  });
+} catch (e) {
+  // ignore
+}
+
 export const SCOPES = [
   'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/drive.readonly',
 ];
 
-const provider = new GoogleAuthProvider();
-SCOPES.forEach((scope) => provider.addScope(scope));
-provider.setCustomParameters({ prompt: 'select_account' });
+export const DEFAULT_PERMANENT_EMAIL = 'manutencaolaminor@gmail.com';
 
-// Token storage with sessionStorage persistence across tab reloads
+// Storage keys
 const TOKEN_KEY = 'techview_gdrive_access_token';
-const TOKEN_EXP_KEY = 'techview_gdrive_token_exp';
+const ACCOUNT_STORAGE_KEY = 'techview_permanent_account';
 
-const getStoredToken = (): string | null => {
+export interface PermanentAccountInfo {
+  email: string;
+  displayName: string;
+  photoURL?: string | null;
+  uid?: string;
+  isPermanentlyLinked: boolean;
+  connectedAt: string;
+  lastActiveAt?: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  isPermanentlyLinked: boolean;
+  permanentEmail: string;
+}
+
+export const getStoredAccount = (): PermanentAccountInfo => {
   try {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    const exp = sessionStorage.getItem(TOKEN_EXP_KEY);
-    if (token && exp && Date.now() < Number(exp)) {
-      return token;
+    const raw = localStorage.getItem(ACCOUNT_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.email) {
+        return parsed;
+      }
     }
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(TOKEN_EXP_KEY);
   } catch (e) {
-    // sessionStorage not available
+    // fallback
   }
-  return null;
+  // Initialize default permanent account
+  const defaultAcc: PermanentAccountInfo = {
+    email: DEFAULT_PERMANENT_EMAIL,
+    displayName: 'Manutenção Laminor',
+    photoURL: null,
+    isPermanentlyLinked: true,
+    connectedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(defaultAcc));
+  } catch (e) {
+    // ignore
+  }
+  return defaultAcc;
 };
 
-const storeToken = (token: string | null) => {
+export const savePermanentAccount = (account: Partial<PermanentAccountInfo>): PermanentAccountInfo => {
+  try {
+    const current = getStoredAccount();
+    const updated: PermanentAccountInfo = {
+      ...current,
+      ...account,
+      email: account.email || current.email || DEFAULT_PERMANENT_EMAIL,
+      displayName: account.displayName || current.displayName || 'Manutenção Laminor',
+      isPermanentlyLinked: true,
+      lastActiveAt: new Date().toISOString(),
+    };
+    localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    return getStoredAccount();
+  }
+};
+
+export const clearStoredToken = () => {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    cachedAccessToken = null;
+  } catch (e) {
+    // ignore
+  }
+};
+
+export const getStoredToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+  } catch (e) {
+    return null;
+  }
+};
+
+export const storeToken = (token: string | null) => {
   try {
     if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
       sessionStorage.setItem(TOKEN_KEY, token);
-      // Valid for 55 minutes
-      sessionStorage.setItem(TOKEN_EXP_KEY, String(Date.now() + 55 * 60 * 1000));
     } else {
-      sessionStorage.removeItem(TOKEN_KEY);
-      sessionStorage.removeItem(TOKEN_EXP_KEY);
+      clearStoredToken();
     }
   } catch (e) {
     // ignore
   }
 };
 
+export const getGoogleAuthProvider = (hintEmail?: string) => {
+  const provider = new GoogleAuthProvider();
+  SCOPES.forEach((scope) => provider.addScope(scope));
+  const targetEmail = hintEmail || getStoredAccount().email || DEFAULT_PERMANENT_EMAIL;
+  // Use login_hint so Google locks into the designated account without repeatedly forcing account selection
+  provider.setCustomParameters({
+    login_hint: targetEmail,
+  });
+  return provider;
+};
+
 let cachedAccessToken: string | null = getStoredToken();
 let isSigningIn = false;
-
-export interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  isAuthenticated: boolean;
-}
 
 type AuthCallback = (state: AuthState) => void;
 const listeners: Set<AuthCallback> = new Set();
 
 const notifyListeners = (user: User | null, token: string | null) => {
+  const stored = getStoredAccount();
+  const effectiveUser = user || (stored && token ? ({
+    email: stored.email,
+    displayName: stored.displayName,
+    photoURL: stored.photoURL,
+    uid: stored.uid || 'permanent-laminor-user',
+  } as unknown as User) : null);
+
   const state: AuthState = {
-    user,
+    user: effectiveUser,
     accessToken: token,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!effectiveUser && !!token,
+    isPermanentlyLinked: true,
+    permanentEmail: stored.email,
   };
   listeners.forEach((callback) => callback(state));
 };
@@ -83,16 +172,52 @@ export const subscribeAuth = (callback: AuthCallback) => {
   if (activeToken && !cachedAccessToken) {
     cachedAccessToken = activeToken;
   }
-  // Send immediate state
+  const storedAcc = getStoredAccount();
+
+  // Send immediate state: if auth.currentUser is not yet loaded, use stored permanent account info so UI doesn't flash disconnected
+  const user = auth.currentUser || (storedAcc && activeToken ? ({
+    email: storedAcc.email,
+    displayName: storedAcc.displayName,
+    photoURL: storedAcc.photoURL,
+    uid: storedAcc.uid || 'permanent-laminor-user',
+  } as unknown as User) : null);
+
   callback({
-    user: auth.currentUser,
-    accessToken: cachedAccessToken,
-    isAuthenticated: !!auth.currentUser && !!cachedAccessToken,
+    user,
+    accessToken: activeToken,
+    isAuthenticated: !!user && !!activeToken,
+    isPermanentlyLinked: true,
+    permanentEmail: storedAcc.email,
   });
+
   return () => {
     listeners.delete(callback);
   };
 };
+
+// Auto-initialize auth state listener on module load to guarantee instant sync
+onAuthStateChanged(auth, async (user: User | null) => {
+  const token = cachedAccessToken || getStoredToken();
+  if (user) {
+    savePermanentAccount({
+      email: user.email || DEFAULT_PERMANENT_EMAIL,
+      displayName: user.displayName || 'Manutenção Laminor',
+      photoURL: user.photoURL,
+      uid: user.uid,
+      isPermanentlyLinked: true,
+    });
+    cachedAccessToken = token;
+    notifyListeners(user, token);
+  } else {
+    // If Firebase reports null user but we have permanent token & account, stay connected
+    const stored = getStoredAccount();
+    if (token && stored) {
+      notifyListeners(null, token);
+    } else {
+      notifyListeners(null, null);
+    }
+  }
+});
 
 export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
@@ -104,21 +229,26 @@ export const initAuth = (
       cachedAccessToken = validToken;
       if (onAuthSuccess) onAuthSuccess(user, validToken);
       notifyListeners(user, validToken);
-    } else if (!user) {
-      cachedAccessToken = null;
-      storeToken(null);
+    } else if (validToken) {
+      const stored = getStoredAccount();
+      const mockUser = {
+        email: stored.email,
+        displayName: stored.displayName,
+        uid: stored.uid || 'permanent-laminor-user',
+      } as unknown as User;
+      if (onAuthSuccess) onAuthSuccess(mockUser, validToken);
+      notifyListeners(mockUser, validToken);
+    } else {
       if (onAuthFailure) onAuthFailure();
       notifyListeners(null, null);
-    } else {
-      // User is logged in to Firebase but needs fresh Google OAuth token
-      notifyListeners(user, null);
     }
   });
 };
 
-export const googleSignIn = async (): Promise<{ user: User; accessToken: string }> => {
+export const googleSignIn = async (hintEmail?: string): Promise<{ user: User; accessToken: string }> => {
   try {
     isSigningIn = true;
+    const provider = getGoogleAuthProvider(hintEmail || DEFAULT_PERMANENT_EMAIL);
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
@@ -127,17 +257,29 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
 
     cachedAccessToken = credential.accessToken;
     storeToken(cachedAccessToken);
+
+    savePermanentAccount({
+      email: result.user.email || hintEmail || DEFAULT_PERMANENT_EMAIL,
+      displayName: result.user.displayName || 'Manutenção Laminor',
+      photoURL: result.user.photoURL,
+      uid: result.user.uid,
+      isPermanentlyLinked: true,
+    });
+
     notifyListeners(result.user, cachedAccessToken);
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
     console.error('Erro na autenticação com Google:', error);
-    cachedAccessToken = null;
-    storeToken(null);
-    notifyListeners(null, null);
     throw error;
   } finally {
     isSigningIn = false;
   }
+};
+
+export const renewGoogleToken = async (): Promise<string | null> => {
+  const account = getStoredAccount();
+  const res = await googleSignIn(account.email);
+  return res.accessToken;
 };
 
 export const getAccessToken = async (): Promise<string | null> => {
@@ -151,7 +293,7 @@ export const googleSignOut = async (): Promise<void> => {
   try {
     await signOut(auth);
     cachedAccessToken = null;
-    storeToken(null);
+    clearStoredToken();
     notifyListeners(null, null);
   } catch (error) {
     console.error('Erro ao desconectar:', error);

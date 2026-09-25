@@ -5,7 +5,6 @@ import {
   CloudDownload, 
   CheckCircle2, 
   AlertTriangle, 
-  Folder, 
   FileText, 
   FileCode, 
   X, 
@@ -18,9 +17,13 @@ import {
   FolderCheck,
   PlusCircle,
   UploadCloud,
-  Check
+  Check,
+  Layers,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
-import { TechnicalDocument, TECHNICAL_CATEGORIES, DocumentCategory } from '../types';
+import { getCategoryIcon } from './Sidebar';
+import { TechnicalDocument, TECHNICAL_CATEGORIES, DocumentCategory, isUpperCaseCategory } from '../types';
 import { 
   DriveSyncService, 
   DriveFileInfo, 
@@ -31,7 +34,8 @@ import {
   googleSignIn, 
   googleSignOut, 
   subscribeAuth, 
-  AuthState 
+  AuthState,
+  DEFAULT_PERMANENT_EMAIL
 } from '../services/googleAuth';
 
 interface DriveSyncModalProps {
@@ -59,6 +63,8 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
     user: null,
     accessToken: null,
     isAuthenticated: false,
+    isPermanentlyLinked: true,
+    permanentEmail: DEFAULT_PERMANENT_EMAIL,
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -69,7 +75,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const [categoryStats, setCategoryStats] = useState<Record<string, CategoryFolderStats> | null>(
     initialCategoryStats || null
   );
-  const [selectedUploadCategory, setSelectedUploadCategory] = useState<DocumentCategory>('Rotomec');
+  const [selectedUploadCategory, setSelectedUploadCategory] = useState<DocumentCategory>('ROTOMEC');
   const [selectedUploadSubcategory, setSelectedUploadSubcategory] = useState<string>('');
   const [isUploadingToCategory, setIsUploadingToCategory] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,8 +126,8 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const handleSignIn = async () => {
     try {
       setIsLoading(true);
-      const res = await googleSignIn();
-      onNotify(`Conectado ao Google Drive com sucesso (${res.user.email})!`, 'success');
+      const res = await googleSignIn(DEFAULT_PERMANENT_EMAIL);
+      onNotify(`Conta permanente vinculada com sucesso (${res.user.email})!`, 'success');
       await loadDriveFiles();
       // Trigger automatic category scan on login
       await handleSyncAllCategoriesAction();
@@ -135,7 +141,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const handleSignOut = async () => {
     try {
       await googleSignOut();
-      onNotify('Desconectado do Google Drive.', 'info');
+      onNotify('Sessão temporária desconectada. A conta manutencaolaminor@gmail.com permanece vinculada ao projeto.', 'info');
       setDriveFiles([]);
       setCategoryStats(null);
     } catch (err: any) {
@@ -284,7 +290,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                 )}
               </h3>
               <p className="text-xs text-zinc-500">
-                Sincronize as 13 categorias técnicas automaticamente com a pasta oficial.
+                Sincronize as categorias técnicas em letra maiúscula automaticamente com a pasta oficial.
               </p>
             </div>
           </div>
@@ -300,64 +306,82 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
         <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Auth Card */}
           {!authState.isAuthenticated ? (
-            <div className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 text-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
-                <Database className="w-6 h-6" />
+            <div className="p-6 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto border border-blue-200 dark:border-blue-800">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <div className="max-w-md mx-auto">
+              <div className="max-w-md mx-auto space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <Lock className="w-3 h-3" />
+                  <span>Vínculo Permanente ao Projeto</span>
+                </div>
                 <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  Conecte sua conta do Google Drive
+                  Conectar Conta Oficial do Projeto
                 </h4>
+                <p className="text-xs font-mono-tech font-bold text-blue-600 dark:text-blue-400">
+                  {DEFAULT_PERMANENT_EMAIL}
+                </p>
                 <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                  Ao autenticar, o aplicativo sincronizará automaticamente todas as pranchas, imagens e pastas sob <span className="font-semibold text-zinc-800 dark:text-zinc-200">"{DRIVE_ROOT_FOLDER_NAME}"</span> com os contadores de categorias do painel.
+                  Esta conta Google está designada permanentemente para este projeto. Ao conectar, a sessão é preservada de forma contínua com sincronização automática a cada 30 segundos das categorias técnicas (<span className="font-semibold text-zinc-800 dark:text-zinc-200">"{DRIVE_ROOT_FOLDER_NAME}"</span>).
                 </p>
               </div>
 
-              {/* Official Google Sign In Button */}
+              {/* Official Google Sign In Button for permanent account */}
               <div className="flex justify-center pt-1">
                 <button
                   onClick={handleSignIn}
                   disabled={isLoading}
-                  className="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-zinc-50 text-zinc-700 font-medium text-xs rounded-lg border border-zinc-300 dark:border-zinc-600 shadow-xs hover:shadow transition cursor-pointer disabled:opacity-60"
+                  className="flex items-center gap-3 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-60"
                 >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+                  <svg className="w-4 h-4 shrink-0 bg-white rounded-full p-0.5" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
                     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
                     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
                     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                   </svg>
-                  <span>{isLoading ? 'Conectando ao Google...' : 'Entrar com Google para Sincronizar'}</span>
+                  <span>{isLoading ? 'Conectando ao Google...' : `Conectar Permanentemente (${DEFAULT_PERMANENT_EMAIL})`}</span>
                 </button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* User Account Info Bar */}
-              <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/40 flex items-center justify-between">
+              {/* User Account Info Bar with Permanent Badge */}
+              <div className="p-3.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {authState.user?.photoURL ? (
                     <img
                       src={authState.user.photoURL}
                       alt="Avatar"
-                      className="w-9 h-9 rounded-full border border-zinc-200 dark:border-zinc-700"
+                      className="w-10 h-10 rounded-full border border-emerald-300 dark:border-emerald-700"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
-                      {authState.user?.email?.[0].toUpperCase() || 'U'}
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                      {authState.user?.email?.[0].toUpperCase() || 'M'}
                     </div>
                   )}
                   <div>
-                    <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                      {authState.user?.displayName || 'Usuário Google'}
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        {authState.user?.displayName || 'Manutenção Laminor'}
+                      </p>
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                        <ShieldCheck className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                        Permanente
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-600 dark:text-zinc-300 font-mono-tech font-semibold">
+                      {authState.user?.email || DEFAULT_PERMANENT_EMAIL}
                     </p>
-                    <p className="text-[11px] text-zinc-500 font-mono-tech">{authState.user?.email}</p>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
+                      Conexão permanente preservada para o projeto
+                    </p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleSignOut}
-                  title="Desconectar conta Google"
-                  className="p-1.5 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1 text-xs"
+                  title="Desconectar sessão temporária"
+                  className="p-1.5 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1 text-xs cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   <span className="hidden sm:inline">Desconectar</span>
@@ -382,30 +406,33 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
               <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <Folder className="w-4 h-4 text-amber-500" />
-                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                      As 13 Categorias no Google Drive (Auto-Sync)
+                    <Layers className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <span>Categorias no Google Drive</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        Sincronização Automática
+                      </span>
                     </span>
                   </div>
                   
-                  {/* Primary Sync Button */}
+                  {/* Quick Refresh Button */}
                   <button
                     onClick={handleSyncAllCategoriesAction}
                     disabled={isSyncingCategories || isAutoSyncing || isLoading}
-                    className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="text-xs px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-medium rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncingCategories || isAutoSyncing ? 'animate-spin' : ''}`} />
-                    <span>{isSyncingCategories || isAutoSyncing ? 'Sincronizando...' : 'Sincronizar Arquivos das Categorias Agora'}</span>
+                    <RefreshCw className={`w-3 h-3 ${isSyncingCategories || isAutoSyncing ? 'animate-spin text-blue-500' : ''}`} />
+                    <span>{isSyncingCategories || isAutoSyncing ? 'Sincronizando...' : 'Verificar Agora'}</span>
                   </button>
                 </div>
 
                 <p className="text-[11px] text-zinc-500 leading-snug">
-                  Qualquer imagem, PDF ou desenho técnico inserido em uma destas pastas dentro de <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">"{DRIVE_ROOT_FOLDER_NAME}"</span> é sincronizado automaticamente para a respectiva categoria:
+                  Qualquer imagem, PDF ou desenho técnico inserido em uma destas pastas dentro de <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">"{DRIVE_ROOT_FOLDER_NAME}"</span> é sincronizado automaticamente e em segundo plano a cada 30 segundos:
                 </p>
 
                 {/* Subfolder list with live counters */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
-                  {TECHNICAL_CATEGORIES.map((cat, idx) => {
+                  {TECHNICAL_CATEGORIES.filter(isUpperCaseCategory).map((cat, idx) => {
                     const count = categoryStats?.[cat]?.filesCount ?? 
                       localDocuments.filter((d) => d.category === cat).length;
                     return (
@@ -415,7 +442,9 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                         title={`${idx + 1}. ${cat} (${count} arquivos)`}
                       >
                         <div className="flex items-center gap-1.5 truncate">
-                          <Folder className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span className="text-blue-500 shrink-0">
+                            {getCategoryIcon(cat, "w-3.5 h-3.5")}
+                          </span>
                           <span className="truncate font-medium">{cat}</span>
                         </div>
                         <span className={`text-[10px] font-mono-tech px-1.5 py-0.2 rounded-full font-bold shrink-0 ml-1 ${
@@ -463,7 +492,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                     onChange={(e) => setSelectedUploadCategory(e.target.value as DocumentCategory)}
                     className="text-xs px-2.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-medium focus:ring-1 focus:ring-blue-500"
                   >
-                    {TECHNICAL_CATEGORIES.map((cat) => (
+                    {TECHNICAL_CATEGORIES.filter(isUpperCaseCategory).map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>
@@ -589,7 +618,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                         >
                           <div className="flex items-center gap-2 truncate">
                             {isFolder ? (
-                              <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                              getCategoryIcon(file.name, "w-4 h-4 text-blue-500 shrink-0")
                             ) : isDatabase ? (
                               <FileCode className="w-4 h-4 text-blue-500 shrink-0" />
                             ) : isImage ? (

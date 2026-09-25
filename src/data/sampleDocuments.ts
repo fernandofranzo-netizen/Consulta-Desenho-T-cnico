@@ -6,7 +6,7 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'DWG-ROT-104',
     title: 'Conjunto Redutor Planetário de Impressão - Linha Rotomec',
     description: 'Desenho de conjunto mecânico mostrando eixo motriz, engrenagens planetárias helicoidais, mancais de rolamentos cônicos e selos mecânicos de vedação para impressora Rotomec.',
-    category: 'Rotomec',
+    category: 'ROTOMEC',
     type: 'drawing',
     discipline: 'Mecânica / Transmissão de Potência',
     revision: 'Rev. 03',
@@ -234,7 +234,7 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'EL-SUB-203',
     title: 'Diagrama Unifilar Geral da Subestação Principal 13.8 kV / 440 V',
     description: 'Esquema elétrico unifilar com barramentos seccionados, disjuntores de vácuo, transformadores a seco 2.500 kVA, relés numéricos de proteção 50/51/87 e sistema de intertravamento Kirk.',
-    category: 'Subestação',
+    category: 'SUBESTAÇÃO',
     type: 'drawing',
     discipline: 'Engenharia Elétrica de Potência',
     revision: 'Rev. 02',
@@ -440,324 +440,11 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
 </svg>`
   },
   {
-    id: 'doc-pid-301',
-    code: 'PID-CAG-301',
-    title: 'Diagrama P&ID - Circuito Central de Água Gelada e Chiller',
-    description: 'Diagrama de tubulações e instrumentação (P&ID) da Central de Água Gelada com bombas centrífugas em standby P-101A/B, trocador de calor de placas, transmissores de pressão, vazão e sensores RTD PT100.',
-    category: 'Central Água Gelada',
-    type: 'drawing',
-    discipline: 'Tubulação Industrial & Processos',
-    revision: 'Rev. 04',
-    date: '10/09/2025',
-    author: 'Eng. Leonardo Vasconcelos (CREA 31804)',
-    approver: 'Eng. Carlos Mendonça (CREA 08912)',
-    scale: 'Esquemático P&ID (ANSI/ISA-5.1)',
-    status: 'Para Execução',
-    format: 'SVG Vector HD',
-    fileSize: '4.2 MB',
-    resolution: 'Vetor Infinito (300+ DPI)',
-    isOfflineCached: true,
-    equipmentCode: 'CIR-COOL-01',
-    tags: ['P&ID', 'Tubulação', 'Bomba', 'Trocador de Calor', 'Sensor PT100', 'Válvula Reguladora'],
-    specs: {
-      'Vazão de Projeto': '120 m³/h',
-      'Pressão de Trabalho': '6.5 bar (g)',
-      'Temperatura Entrada / Saída': '32°C / 48°C',
-      'Material das Tubulações': 'Aço Carbono ASTM A-106 Gr. B Sch 40',
-      'Diâmetro Linha Principal': 'DN 150 (6") Flanges ANSI 150#',
-      'Meio Refrigerante': 'Água Industrial Desmineralizada Tratada'
-    },
-    notes: [
-      'Intertravamento lógico aciona partida imediata da Bomba P-101B caso o transmissor de pressão PIT-301 detecte queda inferior a 4.0 bar por mais de 3 segundos.',
-      'Drenos e respiros DN 25 (1") com válvulas de esfera tripartidas instalados nos pontos baixos e altos da tubulação.',
-      'Isolamento térmico tipo lã de rocha com jaquetamento em chapa de alumínio liso 0.6 mm.'
-    ],
-    annotations: [
-      {
-        id: 'ann-pid-1',
-        x: 62,
-        y: 40,
-        title: 'Válvula de Controle Proporcional FCV-301',
-        text: 'Instalada com bypass manual de 3 válvulas globo para permitir manutenção sem parada da linha.',
-        author: 'Inst. Silva',
-        date: '12/09/2025',
-        type: 'nota'
-      }
-    ],
-    svgContent: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
-  <!-- Frame -->
-  <rect x="10" y="10" width="1180" height="780" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <rect x="20" y="20" width="1160" height="760" fill="none" stroke="#64748b" stroke-width="0.8"/>
-
-  <!-- Piping Lines (Linhas de Tubulação de Água - Azul Royal 3.5px) -->
-  <g stroke="#0284c7" stroke-width="4" fill="none">
-    <!-- Main Suction Header -->
-    <line x1="80" y1="280" x2="300" y2="280"/>
-    <!-- Branch to Pump A -->
-    <path d="M 220 280 L 220 200 L 320 200"/>
-    <!-- Branch to Pump B -->
-    <path d="M 220 280 L 220 380 L 320 380"/>
-
-    <!-- Pump A Discharge -->
-    <path d="M 400 200 L 520 200 L 520 280 L 640 280"/>
-    <!-- Pump B Discharge -->
-    <path d="M 400 380 L 520 380 L 520 280"/>
-
-    <!-- Through Heat Exchanger -->
-    <line x1="640" y1="280" x2="740" y2="280"/>
-    <line x1="860" y1="280" x2="1100" y2="280"/>
-
-    <!-- Heat Exchanger Coolant Loop (Secondary) -->
-    <line x1="800" y1="120" x2="800" y2="440" stroke="#059669" stroke-width="3.5" stroke-dasharray="8,4"/>
-  </g>
-
-  <!-- Flow Direction Arrows -->
-  <g fill="#0284c7" stroke="none">
-    <polygon points="160,280 148,274 148,286"/>
-    <polygon points="460,200 448,194 448,206"/>
-    <polygon points="460,380 448,374 448,386"/>
-    <polygon points="980,280 968,274 968,286"/>
-  </g>
-
-  <!-- Centrifugal Pumps P-101A and P-101B -->
-  <g stroke="#0f172a" stroke-width="2" fill="#ffffff" font-family="'JetBrains Mono', monospace">
-    <!-- Pump A -->
-    <circle cx="360" cy="200" r="32" fill="#e0f2fe"/>
-    <polygon points="360,172 388,220 332,220" fill="#0284c7" stroke="#0369a1"/>
-    <text x="360" y="250" font-weight="bold" font-size="11" text-anchor="middle">P-101A</text>
-    <text x="360" y="265" font-size="9" fill="#64748b" text-anchor="middle">60 m³/h - 7.5kW</text>
-
-    <!-- Pump B -->
-    <circle cx="360" cy="380" r="32" fill="#e0f2fe"/>
-    <polygon points="360,352 388,400 332,400" fill="#0284c7" stroke="#0369a1"/>
-    <text x="360" y="430" font-weight="bold" font-size="11" text-anchor="middle">P-101B (RESERVA)</text>
-    <text x="360" y="445" font-size="9" fill="#64748b" text-anchor="middle">60 m³/h - 7.5kW</text>
-  </g>
-
-  <!-- Valves (Válvulas Gaveta e Retenção nos ramos) -->
-  <g stroke="#0f172a" stroke-width="1.8" fill="#f8fafc">
-    <!-- Suction Valve A -->
-    <polygon points="260,192 280,208 280,192 260,208"/>
-    <!-- Discharge Check Valve A (Retenção) -->
-    <polygon points="430,192 450,208 450,192 430,208"/>
-    <line x1="450" y1="188" x2="450" y2="212"/>
-
-    <!-- Suction Valve B -->
-    <polygon points="260,372 280,388 280,372 260,388"/>
-    <!-- Discharge Check Valve B -->
-    <polygon points="430,372 450,388 450,372 430,388"/>
-    <line x1="450" y1="368" x2="450" y2="392"/>
-  </g>
-
-  <!-- Heat Exchanger HE-202 (Trocador de Calor de Placas) -->
-  <g transform="translate(740, 210)" stroke="#0f172a" stroke-width="2.5" fill="#f1f5f9">
-    <rect x="0" y="0" width="120" height="140" rx="8" fill="#e2e8f0"/>
-    <!-- Plates pattern -->
-    <line x1="25" y1="15" x2="25" y2="125" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="45" y1="15" x2="45" y2="125" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="65" y1="15" x2="65" y2="125" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="85" y1="15" x2="85" y2="125" stroke="#94a3b8" stroke-width="2"/>
-    <text x="60" y="70" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#1e293b" text-anchor="middle">HE-202</text>
-    <text x="60" y="88" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">TROCADOR DE PLACAS</text>
-    <text x="60" y="102" font-family="sans-serif" font-size="9" fill="#059669" text-anchor="middle">Q = 480 kW</text>
-  </g>
-
-  <!-- Instrumentation Bubbles (ANSI/ISA-5.1 Norm) -->
-  <g stroke="#0f172a" stroke-width="1.5" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="11">
-    <!-- PIT-301 (Pressure Transmitter) -->
-    <line x1="570" y1="280" x2="570" y2="180" stroke="#0f172a" stroke-width="1"/>
-    <circle cx="570" cy="150" r="24"/>
-    <line x1="546" y1="150" x2="594" y2="150"/>
-    <text x="570" y="142" font-weight="bold" text-anchor="middle">PT</text>
-    <text x="570" y="165" font-size="9" text-anchor="middle">301</text>
-
-    <!-- TT-302 (Temperature Transmitter) -->
-    <line x1="910" y1="280" x2="910" y2="180" stroke="#0f172a" stroke-width="1"/>
-    <circle cx="910" cy="150" r="24"/>
-    <line x1="886" y1="150" x2="934" y2="150"/>
-    <text x="910" y="142" font-weight="bold" text-anchor="middle">TT</text>
-    <text x="910" y="165" font-size="9" text-anchor="middle">302</text>
-
-    <!-- FT-303 (Flow Transmitter) -->
-    <line x1="1020" y1="280" x2="1020" y2="180" stroke="#0f172a" stroke-width="1"/>
-    <circle cx="1020" cy="150" r="24"/>
-    <line x1="996" y1="150" x2="1044" y2="150"/>
-    <text x="1020" y="142" font-weight="bold" text-anchor="middle">FT</text>
-    <text x="1020" y="165" font-size="9" text-anchor="middle">303</text>
-  </g>
-
-  <!-- Pipe Specs Callout Banner -->
-  <g transform="translate(100, 560)">
-    <rect x="0" y="0" width="550" height="150" fill="#f8fafc" stroke="#94a3b8" stroke-width="1" rx="4"/>
-    <text x="16" y="24" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="12" fill="#0f172a">TAGS DE TUBULAÇÃO E LINHAS DE PROCESSO:</text>
-    <text x="16" y="50" font-family="'JetBrains Mono', monospace" font-size="10" fill="#334155">• LINHA 6"-CW-301-A1A: ÁGUA DE RESFRIAMENTO SUPRIMENTO (DN 150 SCH 40)</text>
-    <text x="16" y="74" font-family="'JetBrains Mono', monospace" font-size="10" fill="#334155">• LINHA 6"-CWR-302-A1A: ÁGUA DE RESFRIAMENTO RETORNO PARA TORRE (DN 150)</text>
-    <text x="16" y="98" font-family="'JetBrains Mono', monospace" font-size="10" fill="#059669">• LINHA 4"-TW-105-B1B: ÁGUA SECUNDÁRIA DO CONDENSADOR (DN 100)</text>
-    <text x="16" y="122" font-family="'JetBrains Mono', monospace" font-size="10" fill="#64748b">• TESTE HIDROSTÁTICO: 1.5x PRESSÃO DE PROJETO (9.75 BAR / 2 HORAS)</text>
-  </g>
-
-  <!-- Title block -->
-  <g transform="translate(730, 650)">
-    <rect x="0" y="0" width="440" height="120" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-    <line x1="0" y1="35" x2="440" y2="35" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="0" y1="75" x2="440" y2="75" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="280" y1="35" x2="280" y2="120" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="360" y1="35" x2="360" y2="120" stroke="#0f172a" stroke-width="1.2"/>
-    <text x="12" y="24" font-family="sans-serif" font-weight="bold" font-size="13" fill="#1e3a8a">CIRCUITO HIDRÁULICO DE RESFRIAMENTO</text>
-    <text x="12" y="52" font-family="sans-serif" font-weight="bold" font-size="11" fill="#0f172a">P&ID - BOMBAS DE REFRIGERAÇÃO E TROCADOR</text>
-    <text x="12" y="104" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">PID-TUB-301</text>
-    <text x="290" y="52" font-family="sans-serif" font-size="9" fill="#64748b">ESCALA: S/E</text>
-    <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 04</text>
-    <text x="370" y="52" font-family="sans-serif" font-size="9" fill="#64748b">FOLHA: 01/01</text>
-    <text x="370" y="104" font-family="sans-serif" font-size="9" fill="#64748b">10/09/2025</text>
-  </g>
-</svg>`
-  },
-  {
-    id: 'doc-civ-402',
-    code: 'CIV-EXT-402',
-    title: 'Planta de Formas e Armaduras da Fundação - Área Externa',
-    description: 'Projeto estrutural de engenharia civil detalhando bloco maciço de concreto armado fck 35 MPa, malha dupla de aço CA-50, chumbadores de alta resistência M48 para ancoragem mecânica e estacas raiz na área externa.',
-    category: 'Área Externa',
-    type: 'drawing',
-    discipline: 'Engenharia Civil / Estruturas Pesadas',
-    revision: 'Rev. 01',
-    date: '05/06/2025',
-    author: 'Eng. Marcelo Antunes (CREA 11940)',
-    approver: 'Eng. Carlos Mendonça (CREA 08912)',
-    scale: '1:50 / 1:25 (A1)',
-    status: 'Aprovado',
-    format: 'SVG Vector HD',
-    fileSize: '5.1 MB',
-    resolution: 'Vetor Infinito (300+ DPI)',
-    isOfflineCached: true,
-    equipmentCode: 'FND-LAM-01',
-    tags: ['Civil', 'Fundação', 'Concreto Armado', 'Chumbadores', 'Armadura', 'ABNT NBR 6118'],
-    specs: {
-      'Resistência do Concreto (fck)': '35 MPa aos 28 dias',
-      'Tipo de Cimento': 'CP IV-32 Resistente a Sulfatos',
-      'Armadura Principal': 'Aço CA-50 Ø 25.0 mm c/ 15 cm',
-      'Cobrimento Nominal (c)': '50 mm (Ambiente Agressivo Classe III)',
-      'Volume Total de Concreto': '485 m³ (Concretagem Contínua)',
-      'Chumbadores de Fixação': '32x Tirantes ASTM A-354 Gr. BD Ø 48 mm'
-    },
-    notes: [
-      'Garantir cura úmida contínua do bloco por no mínimo 14 dias para controle de fissuração de origem térmica.',
-      'Tubos passantes de PVC DN 100 para drenagem de piso e passagens de cabos elétricos posicionados conforme planta de interfaces elétricas.',
-      'Grouting de precisão tipo base epóxi de alta fluidez sob a base da carcaça do redutor mecânico com espessura de 50 mm.'
-    ],
-    annotations: [
-      {
-        id: 'ann-civ-1',
-        x: 35,
-        y: 50,
-        title: 'Bolsão do Chumbador M48',
-        text: 'Caixas de madeira compensada 200x200x1200mm para ancoragem com graute expansivo após nivelamento óptico.',
-        author: 'Eng. Residente',
-        date: '15/06/2025',
-        type: 'cota'
-      }
-    ],
-    svgContent: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
-  <rect x="10" y="10" width="1180" height="780" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <rect x="20" y="20" width="1160" height="760" fill="none" stroke="#64748b" stroke-width="0.8"/>
-
-  <!-- Foundation Massive Concrete Block (Top View / Corte Superior) -->
-  <g stroke="#334155" stroke-width="2" fill="#f1f5f9">
-    <!-- Outer Foundation Perimeter -->
-    <rect x="120" y="160" width="940" height="420" rx="6" fill="#e2e8f0"/>
-
-    <!-- Machine Pedestal Pit (Rebaixo de Fixação das Cadeiras) -->
-    <rect x="240" y="220" width="700" height="300" fill="#cbd5e1" stroke="#1e293b" stroke-width="2.5"/>
-  </g>
-
-  <!-- Rebar Grid Pattern (Armadura CA-50 em Malha Dupla) -->
-  <g stroke="#64748b" stroke-width="1" stroke-dasharray="6,6" opacity="0.75">
-    <line x1="140" y1="200" x2="1040" y2="200"/>
-    <line x1="140" y1="280" x2="1040" y2="280"/>
-    <line x1="140" y1="360" x2="1040" y2="360"/>
-    <line x1="140" y1="440" x2="1040" y2="440"/>
-    <line x1="140" y1="520" x2="1040" y2="520"/>
-
-    <line x1="200" y1="180" x2="200" y2="560"/>
-    <line x1="360" y1="180" x2="360" y2="560"/>
-    <line x1="520" y1="180" x2="520" y2="560"/>
-    <line x1="680" y1="180" x2="680" y2="560"/>
-    <line x1="840" y1="180" x2="840" y2="560"/>
-    <line x1="1000" y1="180" x2="1000" y2="560"/>
-  </g>
-
-  <!-- Anchor Bolts Pattern (32 Chumbadores M48 de Alta Resistência) -->
-  <g fill="#dc2626" stroke="#991b1b" stroke-width="1.5">
-    <!-- Row 1 Top -->
-    <circle cx="280" cy="250" r="10"/>
-    <circle cx="420" cy="250" r="10"/>
-    <circle cx="560" cy="250" r="10"/>
-    <circle cx="700" cy="250" r="10"/>
-    <circle cx="840" cy="250" r="10"/>
-
-    <!-- Row 2 -->
-    <circle cx="280" cy="320" r="10"/>
-    <circle cx="420" cy="320" r="10"/>
-    <circle cx="560" cy="320" r="10"/>
-    <circle cx="700" cy="320" r="10"/>
-    <circle cx="840" cy="320" r="10"/>
-
-    <!-- Row 3 -->
-    <circle cx="280" cy="420" r="10"/>
-    <circle cx="420" cy="420" r="10"/>
-    <circle cx="560" cy="420" r="10"/>
-    <circle cx="700" cy="420" r="10"/>
-    <circle cx="840" cy="420" r="10"/>
-
-    <!-- Row 4 Bottom -->
-    <circle cx="280" cy="490" r="10"/>
-    <circle cx="420" cy="490" r="10"/>
-    <circle cx="560" cy="490" r="10"/>
-    <circle cx="700" cy="490" r="10"/>
-    <circle cx="840" cy="490" r="10"/>
-  </g>
-
-  <!-- Dimension Cotas -->
-  <g stroke="#0284c7" stroke-width="1.2" fill="#0284c7" font-family="'JetBrains Mono', monospace" font-size="12">
-    <!-- Total Width Cota -->
-    <line x1="120" y1="120" x2="1060" y2="120"/>
-    <line x1="120" y1="110" x2="120" y2="160" stroke="#94a3b8"/>
-    <line x1="1060" y1="110" x2="1060" y2="160" stroke="#94a3b8"/>
-    <polygon points="120,120 130,117 130,123"/>
-    <polygon points="1060,120 1050,117 1050,123"/>
-    <text x="590" y="112" font-weight="bold" text-anchor="middle">LARGURA TOTAL DO BLOCO: 14.800 mm (14.8 m)</text>
-
-    <!-- Bolt Spacing Cota -->
-    <line x1="280" y1="210" x2="420" y2="210"/>
-    <polygon points="280,210 290,207 290,213"/>
-    <polygon points="420,210 410,207 410,213"/>
-    <text x="350" y="202" font-size="11" font-weight="bold" text-anchor="middle">1.400 mm</text>
-  </g>
-
-  <!-- Title Block -->
-  <g transform="translate(730, 650)">
-    <rect x="0" y="0" width="440" height="120" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-    <line x1="0" y1="35" x2="440" y2="35" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="0" y1="75" x2="440" y2="75" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="280" y1="35" x2="280" y2="120" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="360" y1="35" x2="360" y2="120" stroke="#0f172a" stroke-width="1.2"/>
-    <text x="12" y="24" font-family="sans-serif" font-weight="bold" font-size="13" fill="#1e3a8a">PROJETO ESTRUTURAL DE FUNDAÇÃO PESADA</text>
-    <text x="12" y="52" font-family="sans-serif" font-weight="bold" font-size="11" fill="#0f172a">PLANTA DE FORMAS, ARMADURAS E CHUMBADORES</text>
-    <text x="12" y="104" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">CIV-EST-402</text>
-    <text x="290" y="52" font-family="sans-serif" font-size="9" fill="#64748b">ESCALA: 1:50</text>
-    <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 01</text>
-    <text x="370" y="52" font-family="sans-serif" font-size="9" fill="#64748b">FOLHA: 02/06</text>
-    <text x="370" y="104" font-family="sans-serif" font-size="9" fill="#64748b">05/06/2025</text>
-  </g>
-</svg>`
-  },
-  {
     id: 'doc-foto-501',
     code: 'FTO-KMP1-501',
     title: 'Registro Fotográfico de END: Trinca por Fadiga em Munhão - Linha Kampf I',
     description: 'Fotografia técnica em alta definição de inspeção por Ensaio Não Destrutivo com Líquido Penetrante Fluorescente na Cortadeira / Rebobinadeira Kampf I.',
-    category: 'Kampf I',
+    category: 'KAMPF I',
     type: 'photo',
     discipline: 'Inspeção de Equipamentos & Ensaios Não Destrutivos (END)',
     revision: 'Relatório #841',
@@ -894,7 +581,7 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'FTO-VRX1-502',
     title: 'Termografia Infravermelha: Ponto Quente em Conexão CCM - Extrusora Varex I',
     description: 'Imagem radiométrica infravermelha com termômetro calibrado FLIR registrando sobreaquecimento térmico severo de 84.5°C na fase R do barramento alimentador da extrusora Varex I.',
-    category: 'Varex I',
+    category: 'VAREX I',
     type: 'photo',
     discipline: 'Termografia & Preditiva Elétrica',
     revision: 'Termo #312',
@@ -1026,7 +713,7 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'AUT-VRX2-601',
     title: 'Topologia em Anel Profinet e Distribuição de I/O do CLP - Varex II',
     description: 'Arquitetura de rede de automação industrial com anel de redundância MRP Profinet, CPU Siemens 1518-4 PN/DP, estações remotas ET 200SP, switches de campo Scalance para a linha Varex II.',
-    category: 'Varex II',
+    category: 'VAREX II',
     type: 'drawing',
     discipline: 'Automação Industrial & Redes',
     revision: 'Rev. 02',
@@ -1136,115 +823,5 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 02</text>
   </g>
 </svg>`
-  },
-  {
-    id: 'doc-ins-702',
-    code: 'INS-CAC-702',
-    title: 'Desenho Dimensional da Válvula Reguladora - Central Ar Comprimido',
-    description: 'Válvula globo reguladora de alta precisão para a rede de distribuição principal da Central de Ar Comprimido.',
-    category: 'Central Ar Comprimido',
-    type: 'drawing',
-    discipline: 'Instrumentação & Controle de Processos',
-    revision: 'Rev. 03',
-    date: '03/09/2025',
-    author: 'Eng. Leonardo Vasconcelos (CREA 31804)',
-    approver: 'Eng. Carlos Mendonça (CREA 08912)',
-    scale: '1:10 (A2)',
-    status: 'As-Built',
-    format: 'SVG Vector HD',
-    fileSize: '4.1 MB',
-    resolution: 'Vetor Infinito (300+ DPI)',
-    isOfflineCached: true,
-    equipmentCode: 'FCV-301-B',
-    tags: ['Válvula', 'Controle', 'Globo', 'Atuador', 'Instrumentação', 'HART'],
-    specs: {
-      'Diâmetro Nominal': 'DN 150 (6")',
-      'Classe de Pressão': 'ASME B16.34 Classe 300 RF',
-      'Material do Corpo': 'Aço Carbono Fundido ASTM A216 WCB',
-      'Material do Obturador / Sede': 'Inox 316 com revestimento de Stellite #6',
-      'Característica de Vazão': 'Igual Porcentagem (Equal Percentage)',
-      'Atuador': 'Pneumático Multi-Molas Fisher 667 Tamanho 70'
-    },
-    notes: [
-      'Sentido de fluxo indicado pela seta fundida no corpo da válvula (Flow to open).',
-      'Pressão de suprimento de ar para o atuador: 2.4 a 4.0 bar (g) - Ar de instrumentos isento de óleo.',
-      'Ação da válvula por falta de ar: Falha Fechada (Air-to-Open / Fail Closed).'
-    ],
-    annotations: [],
-    svgContent: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
-  <rect x="10" y="10" width="1180" height="780" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <rect x="20" y="20" width="1160" height="760" fill="none" stroke="#64748b" stroke-width="0.8"/>
-
-  <!-- Valve Body (Corte da Válvula Globo) -->
-  <g stroke="#0f172a" stroke-width="2.2" fill="#e2e8f0">
-    <!-- Flanges Left and Right -->
-    <rect x="360" y="520" width="30" height="140" fill="#94a3b8"/>
-    <rect x="810" y="520" width="30" height="140" fill="#94a3b8"/>
-
-    <!-- Globe Body Center -->
-    <path d="M 390 550 L 520 550 L 520 480 L 680 480 L 680 550 L 810 550 L 810 630 L 680 630 L 650 670 L 550 670 L 520 630 L 390 630 Z" fill="#cbd5e1"/>
-
-    <!-- Bonnet Flange & Yoke (Castelo e Cavalete de Sustentação) -->
-    <rect x="540" y="440" width="120" height="40" fill="#94a3b8"/>
-    <line x1="560" y1="440" x2="560" y2="280" stroke="#0f172a" stroke-width="3"/>
-    <line x1="640" y1="440" x2="640" y2="280" stroke="#0f172a" stroke-width="3"/>
-
-    <!-- Central Valve Stem (Haste da Válvula) -->
-    <rect x="594" y="200" width="12" height="340" fill="#334155"/>
-    <!-- Plug (Obturador) -->
-    <polygon points="570,540 630,540 600,580" fill="#1e293b"/>
-  </g>
-
-  <!-- Pneumatic Diaphragm Actuator (Atuador Pneumático no Topo) -->
-  <g stroke="#0f172a" stroke-width="2" fill="#ffffff">
-    <!-- Diaphragm Housing Casing -->
-    <ellipse cx="600" cy="220" rx="160" ry="60" fill="#f1f5f9" stroke-width="2.5"/>
-    <line x1="440" y1="220" x2="760" y2="220" stroke="#2563eb" stroke-width="3"/>
-    <text x="600" y="210" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2563eb" text-anchor="middle">DIAFRAGMA DE BORRACHA REFORÇADA</text>
-
-    <!-- Top Emergency Handwheel (Volante Manual) -->
-    <ellipse cx="600" cy="110" rx="70" ry="16" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
-    <line x1="600" y1="126" x2="600" y2="160" stroke="#0f172a" stroke-width="3"/>
-    <text x="600" y="100" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">VOLANTE MANUAL DE EMERGÊNCIA</text>
-
-    <!-- Smart Positioner (Posicionador Inteligente HART Lateral) -->
-    <rect x="650" y="320" width="90" height="90" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="2"/>
-    <rect x="665" y="340" width="60" height="30" fill="#0f172a"/>
-    <text x="695" y="358" font-family="'JetBrains Mono', monospace" font-size="9" fill="#22c55e" text-anchor="middle">50.0 %</text>
-    <text x="695" y="398" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">HART 4-20mA</text>
-  </g>
-
-  <!-- Dimension Cotas -->
-  <g stroke="#0284c7" stroke-width="1.2" fill="#0284c7" font-family="'JetBrains Mono', monospace" font-size="11">
-    <!-- Face to Face Dimension (Comprimento Face-a-Face ASME B16.10) -->
-    <line x1="360" y1="710" x2="840" y2="710"/>
-    <line x1="360" y1="660" x2="360" y2="720" stroke="#94a3b8"/>
-    <line x1="840" y1="660" x2="840" y2="720" stroke="#94a3b8"/>
-    <polygon points="360,710 370,707 370,713"/>
-    <polygon points="840,710 830,707 830,713"/>
-    <text x="600" y="730" font-weight="bold" text-anchor="middle">FACE-A-FACE: 451 mm (ASME B16.10)</text>
-
-    <!-- Overall Height Cota -->
-    <line x1="280" y1="95" x2="280" y2="670"/>
-    <line x1="260" y1="95" x2="600" y2="95" stroke="#94a3b8" stroke-width="0.8"/>
-    <line x1="260" y1="670" x2="550" y2="670" stroke="#94a3b8" stroke-width="0.8"/>
-    <polygon points="280,95 277,105 283,105"/>
-    <polygon points="280,670 277,660 283,660"/>
-    <text x="210" y="380" font-weight="bold">ALTURA TOTAL: 1.180 mm</text>
-  </g>
-
-  <!-- Title Block -->
-  <g transform="translate(730, 650)">
-    <rect x="0" y="0" width="440" height="120" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-    <line x1="0" y1="35" x2="440" y2="35" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="0" y1="75" x2="440" y2="75" stroke="#0f172a" stroke-width="1.2"/>
-    <line x1="280" y1="35" x2="280" y2="120" stroke="#0f172a" stroke-width="1.2"/>
-    <text x="12" y="24" font-family="sans-serif" font-weight="bold" font-size="13" fill="#1e3a8a">VÁLVULA DE CONTROLE DE VAZÃO</text>
-    <text x="12" y="52" font-family="sans-serif" font-weight="bold" font-size="11" fill="#0f172a">DESENHO DIMENSIONAL GLOBO DN 150</text>
-    <text x="12" y="104" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">INS-VALV-702</text>
-    <text x="290" y="52" font-family="sans-serif" font-size="9" fill="#64748b">ESCALA: 1:10</text>
-    <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 03</text>
-  </g>
-</svg>`
-  }
+    }
 ];

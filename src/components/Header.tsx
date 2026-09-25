@@ -3,7 +3,11 @@ import {
   Search, 
   X, 
   Menu, 
-  Compass
+  Compass,
+  Cloud,
+  CheckCircle2,
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import { TechnicalDocument } from '../types';
 
@@ -33,6 +37,10 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onToggleMobileMenu,
   resultsCount,
+  onOpenDriveModal,
+  isDriveConnected = false,
+  driveUserEmail,
+  isAutoSyncing = false,
 }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,13 +56,15 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const displayEmail = driveUserEmail || 'manutencaolaminor@gmail.com';
+
   return (
     <header className="h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200/80 dark:border-zinc-800 px-4 flex items-center justify-between gap-3 z-30 shrink-0">
       {/* Left: Mobile Menu Toggle + App Branding */}
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+          className="lg:hidden p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
           aria-label="Abrir Menu Lateral"
         >
           <Menu className="w-5 h-5" />
@@ -97,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
             {searchQuery ? (
               <button
                 onClick={() => onSearchChange('')}
-                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded"
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -114,6 +124,51 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Right: Permanent Account & Google Drive Status */}
+      <div className="flex items-center gap-2">
+        {onOpenDriveModal && (
+          <button
+            onClick={onOpenDriveModal}
+            title={isDriveConnected 
+              ? `Conta permanentemente vinculada: ${displayEmail}` 
+              : `Vincular permanentemente conta ${displayEmail}`
+            }
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer shadow-2xs ${
+              isDriveConnected
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
+                : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+            }`}
+          >
+            <div className="relative flex items-center justify-center">
+              <Cloud className={`w-4 h-4 ${isDriveConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'}`} />
+              {isAutoSyncing && (
+                <RefreshCw className="w-2.5 h-2.5 text-blue-500 absolute -top-1 -right-1 animate-spin" />
+              )}
+            </div>
+
+            <div className="hidden md:flex flex-col text-left leading-tight">
+              <div className="flex items-center gap-1">
+                <span className="font-mono-tech text-[10px] max-w-[140px] truncate font-semibold">
+                  {displayEmail}
+                </span>
+                {isDriveConnected && (
+                  <span title="Vínculo Permanente">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  </span>
+                )}
+              </div>
+              <span className="text-[9px] text-zinc-400">
+                {isDriveConnected ? 'Conectada Permanentemente' : 'Clique para Vincular'}
+              </span>
+            </div>
+
+            {isDriveConnected && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            )}
+          </button>
+        )}
       </div>
     </header>
   );

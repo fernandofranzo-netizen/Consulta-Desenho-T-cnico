@@ -1,19 +1,23 @@
 export type DocumentCategory = string;
 
+/**
+ * Validates whether a category name consists exclusively of uppercase letters.
+ * Categories with lowercase letters are strictly rejected and removed.
+ */
+export function isUpperCaseCategory(catName: string): boolean {
+  if (!catName) return false;
+  if (catName === 'Todos' || catName === 'TODOS') return true;
+  const letters = catName.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+  return letters.length > 0 && letters === letters.toUpperCase();
+}
+
 export const DEFAULT_TECHNICAL_CATEGORIES: DocumentCategory[] = [
-  'Administração',
-  'Almoxarifado',
-  'Área Externa',
-  'Central Água Gelada',
-  'Central Ar Comprimido',
-  'Estoque',
-  'Kampf I',
-  'Kampf II',
-  'Rotomec',
-  'Sistema Combate à Incêndio',
-  'Subestação',
-  'Varex I',
-  'Varex II',
+  'KAMPF I',
+  'KAMPF II',
+  'ROTOMEC',
+  'SUBESTAÇÃO',
+  'VAREX I',
+  'VAREX II',
 ];
 
 export const TECHNICAL_CATEGORIES = DEFAULT_TECHNICAL_CATEGORIES;

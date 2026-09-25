@@ -8,7 +8,7 @@ import {
   Plus, 
   AlertCircle 
 } from 'lucide-react';
-import { TechnicalDocument, DocumentCategory, DocumentStatus, DocumentType, TECHNICAL_CATEGORIES } from '../types';
+import { TechnicalDocument, DocumentCategory, DocumentStatus, DocumentType, TECHNICAL_CATEGORIES, isUpperCaseCategory } from '../types';
 
 interface NewDocumentModalProps {
   isOpen: boolean;
@@ -268,7 +268,7 @@ export const NewDocumentModal: React.FC<NewDocumentModalProps> = ({
                 onChange={(e) => setCategory(e.target.value as DocumentCategory)}
                 className="w-full text-xs px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                {TECHNICAL_CATEGORIES.map((cat) => (
+                {TECHNICAL_CATEGORIES.filter(isUpperCaseCategory).map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
