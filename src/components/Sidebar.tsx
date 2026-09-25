@@ -325,22 +325,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <span className="truncate">{cat.name}</span>
                       </button>
 
-                      <div className="flex items-center gap-1.5 shrink-0 ml-1">
-                        {/* File count pill */}
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono-tech ${
-                            isCategoryActive
-                              ? 'bg-blue-200/60 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                              : cat.count > 0 
-                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold' 
-                              : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400'
-                          }`}
-                        >
-                          {cat.count}
-                        </span>
-
-                        {/* Chevron expand/collapse button if has subcategories */}
-                        {hasSubcategories && (
+                      {hasSubcategories && (
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          {/* Chevron expand/collapse button if has subcategories */}
                           <button
                             type="button"
                             onClick={(e) => toggleCategoryExpand(cat.name, e)}
@@ -353,8 +340,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               <ChevronRight className="w-3.5 h-3.5" />
                             )}
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Subcategories (Subpastas do Drive) */}
@@ -374,7 +361,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         >
                           <div className="flex items-center gap-1.5 truncate">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                            <span className="truncate">Todos da pasta ({cat.count})</span>
+                            <span className="truncate">Todos da pasta</span>
                           </div>
                         </button>
 
@@ -398,18 +385,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 {getSubcategoryIcon(sub.name, cat.name, `w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-white' : 'text-blue-500 dark:text-blue-400'}`)}
                                 <span className="truncate">{sub.name}</span>
                               </div>
-
-                              <span
-                                className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-tech shrink-0 ml-1 ${
-                                  isSubActive
-                                    ? 'bg-white/20 text-white font-bold'
-                                    : sub.count > 0
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium'
-                                    : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400'
-                                }`}
-                              >
-                                {sub.count}
-                              </span>
                             </button>
                           );
                         })}
