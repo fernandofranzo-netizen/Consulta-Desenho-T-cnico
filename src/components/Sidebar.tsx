@@ -30,7 +30,8 @@ import {
   Sun,
   Moon,
   HardDrive,
-  ShieldCheck
+  ShieldCheck,
+  Search
 } from 'lucide-react';
 import { 
   DocumentCategory, 
@@ -54,6 +55,7 @@ interface SidebarProps {
   isOpen: boolean;
   onCloseMobile: () => void;
   onOpenDriveModal?: () => void;
+  onOpenDriveSearch?: () => void;
   isDriveConnected?: boolean;
   driveUserEmail?: string | null;
   isAutoSyncing?: boolean;
@@ -114,6 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onCloseMobile,
   onOpenDriveModal,
+  onOpenDriveSearch,
   isDriveConnected,
   driveUserEmail,
   isAutoSyncing,
@@ -268,6 +271,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                   <CloudCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 ml-1 group-hover:scale-110 transition-transform" />
                 </div>
+              )}
+
+              {onOpenDriveSearch && (
+                <button
+                  type="button"
+                  onClick={onOpenDriveSearch}
+                  className="w-full mt-2 py-1.5 px-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
+                >
+                  <Search className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                  <span>Buscar no Banco do Drive</span>
+                </button>
               )}
             </div>
 

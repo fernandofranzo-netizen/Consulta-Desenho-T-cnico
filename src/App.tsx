@@ -18,6 +18,7 @@ import { DocumentSelectorBar } from './components/DocumentSelectorBar';
 import { TechnicalViewer } from './components/TechnicalViewer';
 import { NewDocumentModal } from './components/NewDocumentModal';
 import { DriveSyncModal } from './components/DriveSyncModal';
+import { DriveDatabaseSearchModal } from './components/DriveDatabaseSearchModal';
 import { subscribeAuth, AuthState } from './services/googleAuth';
 import { DriveSyncService, CategoryFolderStats } from './services/driveSync';
 import { CheckCircle2, AlertTriangle, HardDrive, WifiOff } from 'lucide-react';
@@ -35,6 +36,8 @@ export default function App() {
 
   // Google Drive & Auth State
   const [isDriveModalOpen, setIsDriveModalOpen] = useState<boolean>(false);
+  const [isDriveSearchModalOpen, setIsDriveSearchModalOpen] = useState<boolean>(false);
+  const [driveSearchInitialQuery, setDriveSearchInitialQuery] = useState<string>('');
   const [driveAuthState, setDriveAuthState] = useState<AuthState>({
     user: null,
     accessToken: null,
@@ -498,6 +501,10 @@ export default function App() {
       <Header
         searchQuery={filters.searchQuery}
         onSearchChange={(query) => setFilters((prev) => ({ ...prev, searchQuery: query }))}
+        onOpenDriveSearch={(q) => {
+          setDriveSearchInitialQuery(q ?? filters.searchQuery ?? '');
+          setIsDriveSearchModalOpen(true);
+        }}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         isOnline={isOnline}
@@ -548,6 +555,10 @@ export default function App() {
           isOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
           onOpenDriveModal={() => setIsDriveModalOpen(true)}
+          onOpenDriveSearch={() => {
+            setDriveSearchInitialQuery(filters.searchQuery || '');
+            setIsDriveSearchModalOpen(true);
+          }}
           isDriveConnected={driveAuthState.isAuthenticated}
           driveUserEmail={driveAuthState.user?.email || driveAuthState.permanentEmail || 'manutencaolaminor@gmail.com'}
           isAutoSyncing={isAutoSyncingDrive}
@@ -613,6 +624,26 @@ export default function App() {
         categoryStats={categoryDriveStats}
         onSyncAllCategories={() => handleSyncDriveCategories(false)}
         isAutoSyncing={isAutoSyncingDrive}
+        onOpenDriveSearch={() => {
+          setDriveSearchInitialQuery(filters.searchQuery || '');
+          setIsDriveSearchModalOpen(true);
+        }}
+      />
+
+      {/* Modal to Search Drawings in Google Drive Database */}
+      <DriveDatabaseSearchModal
+        isOpen={isDriveSearchModalOpen}
+        onClose={() => setIsDriveSearchModalOpen(false)}
+        documents={documents}
+        initialQuery={driveSearchInitialQuery}
+        onSelectDocument={(doc) => {
+          setSelectedDocumentId(doc.id);
+          if (!documents.some((d) => d.id === doc.id)) {
+            setDocuments((prev) => [doc, ...prev]);
+          }
+        }}
+        onRestoreDocuments={handleRestoreFromDrive}
+        onNotify={showToast}
       />
     </div>
   );

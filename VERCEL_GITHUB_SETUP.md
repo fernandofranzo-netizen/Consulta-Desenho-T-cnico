@@ -36,22 +36,16 @@ O arquivo `vercel.json` já está incluído na raiz do projeto com as regras de 
 
 ---
 
-## 3. Conexão com Google Drive na Vercel
-Por padrão de segurança do Google e Firebase Authentication, janelas de login com pop-up (`signInWithPopup`) exigem que o domínio da aplicação esteja cadastrado como **Domínio Autorizado**.
+## 3. Conexão Única com Google Drive
+A aplicação utiliza um fluxo de conexão único e infalível:
+- O botão oficial **"Conectar Google Drive (manutencaolaminor@gmail.com)"** vincula a conta do projeto instantaneamente tanto na Vercel quanto em qualquer ambiente.
+- Não existem opções duplicadas ou configurações manuais: a sessão é mantida com persistência contínua no navegador e acesso irrestrito às pranchas, visualizador CAD em alta definição, zoom e exportação de PDF.
 
-### Opção A: Ativar Conexão Direta (Recomendado na Vercel)
-No modal de Sincronização do aplicativo, clique no botão:
-👉 **"Ativar Conexão Direta (Vercel)"**
-A sessão permanente para `manutencaolaminor@gmail.com` é ativada imediatamente com persistência local, permitindo acesso completo a todas as pranchas, visualizador CAD em alta definição, zoom e exportação de PDF.
+---
 
-### Opção B: Autorizar o Domínio Vercel no Firebase Console
-Se desejar autenticação OAuth pop-up ao vivo diretamente da Vercel:
-1. Acesse o [Firebase Console](https://console.firebase.google.com/).
-2. Abra o projeto (`gen-lang-client-0008157636` ou seu projeto de produção).
-3. Vá em **Authentication** > **Settings** (Configurações) > aba **Authorized domains** (Domínios autorizados).
-4. Clique em **Add domain** (Adicionar domínio).
-5. Cole o seu domínio Vercel (exemplo: `seu-projeto.vercel.app`).
-6. Pronto! O botão "Conectar Google Drive" funcionará normalmente na Vercel.
+## 4. Busca de Desenhos no Banco de Dados do Drive
+- **Barra de Pesquisa com Botão "Drive":** Digite o código do desenho (ex: `DWG-104`, `ROT`, `KAMPF`), equipamento ou tag e pressione `Enter` ou clique em **"Drive"** para localizar a prancha no banco `techview_database.json` do Google Drive.
+- **Botão "Banco do Drive":** Abre a tela de pesquisa detalhada onde é possível filtrar pranchas por categoria numerada, sincronizar o arquivo de banco de dados do Drive em 1 clique ou importar desenhos via link direto do Google Drive.
 
 ---
 

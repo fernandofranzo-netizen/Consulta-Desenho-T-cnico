@@ -7,7 +7,8 @@ import {
   Cloud,
   CheckCircle2,
   ShieldCheck,
-  RefreshCw
+  RefreshCw,
+  Database
 } from 'lucide-react';
 import { TechnicalDocument } from '../types';
 
@@ -16,6 +17,7 @@ interface HeaderProps {
   onSearchChange: (query: string) => void;
   onToggleMobileMenu: () => void;
   resultsCount: number;
+  onOpenDriveSearch?: (query?: string) => void;
   // Optional legacy props kept for flexible component signature
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onToggleMobileMenu,
   resultsCount,
+  onOpenDriveSearch,
   onOpenDriveModal,
   isDriveConnected = false,
   driveUserEmail,
@@ -55,6 +58,15 @@ export const Header: React.FC<HeaderProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (onOpenDriveSearch) {
+        onOpenDriveSearch(searchQuery);
+      }
+    }
+  };
 
   const displayEmail = driveUserEmail || 'manutencaolaminor@gmail.com';
 
@@ -99,11 +111,24 @@ export const Header: React.FC<HeaderProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por código (ex: DWG-104), título, equipamento, tag ou norma..."
-            className="w-full text-xs pl-9 pr-20 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition shadow-2xs font-sans"
+            onKeyDown={handleInputKeyDown}
+            placeholder="Buscar por código (ex: DWG-104), título, equipamento (Rotomec, Kampf, Varex)..."
+            className="w-full text-xs pl-9 pr-32 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition shadow-2xs font-sans"
           />
 
-          <div className="absolute right-2 flex items-center gap-1.5">
+          <div className="absolute right-1.5 flex items-center gap-1">
+            {onOpenDriveSearch && (
+              <button
+                type="button"
+                onClick={() => onOpenDriveSearch(searchQuery)}
+                title="Buscar diretamente no banco de dados techview_database.json do Drive (Enter)"
+                className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[10px] flex items-center gap-1 transition cursor-pointer shadow-2xs"
+              >
+                <Database className="w-2.5 h-2.5" />
+                <span>Drive</span>
+              </button>
+            )}
+
             {searchQuery ? (
               <button
                 onClick={() => onSearchChange('')}
@@ -118,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             {searchQuery && (
-              <span className="text-[10px] text-zinc-400 font-mono-tech px-1">
+              <span className="text-[10px] text-zinc-400 font-mono-tech px-1 hidden sm:inline">
                 {resultsCount} {resultsCount === 1 ? 'item' : 'itens'}
               </span>
             )}
@@ -128,6 +153,16 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Permanent Account & Google Drive Status */}
       <div className="flex items-center gap-2">
+        {onOpenDriveSearch && (
+          <button
+            onClick={() => onOpenDriveSearch(searchQuery)}
+            title="Abrir pesquisa detalhada no banco de dados do Drive"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-xs font-semibold transition cursor-pointer shadow-2xs"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Banco do Drive</span>
+          </button>
+        )}
         {onOpenDriveModal && (
           <button
             onClick={onOpenDriveModal}
