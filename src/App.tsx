@@ -6,6 +6,7 @@ import {
   DocumentCategory, 
   Annotation,
   TECHNICAL_CATEGORIES,
+  isNumberedCategory,
   isUpperCaseCategory
 } from './types';
 import { SAMPLE_DOCUMENTS } from './data/sampleDocuments';
@@ -115,48 +116,56 @@ export default function App() {
   // Initialize Documents from IndexedDB or seed with Samples
   useEffect(() => {
     async function loadStoredDocuments() {
-      const categoryMigrationMap: Record<string, DocumentCategory> = {
-        'Mecânica': 'ROTOMEC',
-        'Rotomec': 'ROTOMEC',
-        'Elétrica': 'SUBESTAÇÃO',
-        'Subestação': 'SUBESTAÇÃO',
-        'Kampf I': 'KAMPF I',
-        'Kampf II': 'KAMPF II',
-        'Varex I': 'VAREX I',
-        'Varex II': 'VAREX II',
-        'Automação': 'VAREX II',
-        'Inspeção em Campo': 'KAMPF I',
+      const categoryMigrationMap: Record<string, { parent: DocumentCategory; sub: string }> = {
+        'Mecânica': { parent: '07 - LAMINAÇÃO', sub: 'ROTOMEC' },
+        'Rotomec': { parent: '07 - LAMINAÇÃO', sub: 'ROTOMEC' },
+        'ROTOMEC': { parent: '07 - LAMINAÇÃO', sub: 'ROTOMEC' },
+        'Elétrica': { parent: '13 - UTILIDADES', sub: 'SUBESTAÇÃO' },
+        'Subestação': { parent: '13 - UTILIDADES', sub: 'SUBESTAÇÃO' },
+        'SUBESTAÇÃO': { parent: '13 - UTILIDADES', sub: 'SUBESTAÇÃO' },
+        'Kampf I': { parent: '10 - CORTE', sub: 'KAMPF I' },
+        'KAMPF I': { parent: '10 - CORTE', sub: 'KAMPF I' },
+        'Kampf II': { parent: '10 - CORTE', sub: 'KAMPF II' },
+        'KAMPF II': { parent: '10 - CORTE', sub: 'KAMPF II' },
+        'Varex I': { parent: '08 - EXTRUSÃO', sub: 'VAREX I' },
+        'VAREX I': { parent: '08 - EXTRUSÃO', sub: 'VAREX I' },
+        'Varex II': { parent: '08 - EXTRUSÃO', sub: 'VAREX II' },
+        'VAREX II': { parent: '08 - EXTRUSÃO', sub: 'VAREX II' },
+        'Automação': { parent: '08 - EXTRUSÃO', sub: 'VAREX II' },
+        'Inspeção em Campo': { parent: '10 - CORTE', sub: 'KAMPF I' },
       };
 
       try {
         const storedDocs = await OfflineStorageService.getOfflineDocuments();
         if (storedDocs && storedDocs.length > 0) {
-          // Migrate old categories to new industrial categories and keep ONLY uppercase categories
+          // Migrate old categories to new numbered industrial categories
           const migratedDocs = storedDocs
             .map((doc) => {
               if (categoryMigrationMap[doc.category]) {
+                const mapInfo = categoryMigrationMap[doc.category];
                 const updatedDoc = {
                   ...doc,
-                  category: categoryMigrationMap[doc.category],
+                  category: mapInfo.parent,
+                  subcategory: doc.subcategory || mapInfo.sub,
                 };
                 OfflineStorageService.saveDocument(updatedDoc);
                 return updatedDoc;
               }
               return doc;
             })
-            .filter((doc) => isUpperCaseCategory(doc.category));
+            .filter((doc) => isNumberedCategory(doc.category));
 
           // Merge with sample documents to ensure any new sample documents are present
           const existingIds = new Set(migratedDocs.map((d) => d.id));
           const missingSamples = SAMPLE_DOCUMENTS.filter(
-            (s) => !existingIds.has(s.id) && isUpperCaseCategory(s.category)
+            (s) => !existingIds.has(s.id) && isNumberedCategory(s.category)
           );
           const combined = [...migratedDocs, ...missingSamples];
           setDocuments(combined);
           setSelectedDocumentId(combined[0]?.id || null);
         } else {
-          // First time seed (strictly uppercase categories)
-          const initialSamples = SAMPLE_DOCUMENTS.filter((d) => isUpperCaseCategory(d.category));
+          // First time seed (strictly numbered categories)
+          const initialSamples = SAMPLE_DOCUMENTS.filter((d) => isNumberedCategory(d.category));
           setDocuments(initialSamples);
           setSelectedDocumentId(initialSamples[0]?.id || null);
           for (const doc of initialSamples) {
@@ -165,7 +174,7 @@ export default function App() {
         }
       } catch (err) {
         console.warn('Fallback to in-memory sample documents:', err);
-        const fallbackSamples = SAMPLE_DOCUMENTS.filter((d) => isUpperCaseCategory(d.category));
+        const fallbackSamples = SAMPLE_DOCUMENTS.filter((d) => isNumberedCategory(d.category));
         setDocuments(fallbackSamples);
         setSelectedDocumentId(fallbackSamples[0]?.id || null);
       }

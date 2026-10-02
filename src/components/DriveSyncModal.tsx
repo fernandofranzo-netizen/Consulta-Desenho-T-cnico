@@ -20,7 +20,10 @@ import {
   Check,
   Layers,
   ShieldCheck,
-  Lock
+  Lock,
+  Copy,
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import { getCategoryIcon } from './Sidebar';
 import { TechnicalDocument, TECHNICAL_CATEGORIES, DocumentCategory, isUpperCaseCategory } from '../types';
@@ -35,7 +38,8 @@ import {
   googleSignOut, 
   subscribeAuth, 
   AuthState,
-  DEFAULT_PERMANENT_EMAIL
+  DEFAULT_PERMANENT_EMAIL,
+  activatePermanentSession
 } from '../services/googleAuth';
 
 interface DriveSyncModalProps {
@@ -75,10 +79,15 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const [categoryStats, setCategoryStats] = useState<Record<string, CategoryFolderStats> | null>(
     initialCategoryStats || null
   );
-  const [selectedUploadCategory, setSelectedUploadCategory] = useState<DocumentCategory>('ROTOMEC');
+  const [selectedUploadCategory, setSelectedUploadCategory] = useState<DocumentCategory>('07 - LAMINAÇÃO');
   const [selectedUploadSubcategory, setSelectedUploadSubcategory] = useState<string>('');
   const [isUploadingToCategory, setIsUploadingToCategory] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isVercelEnvironment = currentHostname.includes('vercel.app');
 
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
     return localStorage.getItem('techview_last_drive_sync');
@@ -126,15 +135,32 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
   const handleSignIn = async () => {
     try {
       setIsLoading(true);
+      setAuthError(null);
       const res = await googleSignIn(DEFAULT_PERMANENT_EMAIL);
       onNotify(`Conta permanente vinculada com sucesso (${res.user.email})!`, 'success');
       await loadDriveFiles();
       // Trigger automatic category scan on login
       await handleSyncAllCategoriesAction();
     } catch (err: any) {
+      setAuthError(err.message || 'Falha na autenticação');
       onNotify(`Falha na autenticação: ${err.message || 'Tente novamente'}`, 'warning');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleActivateDirectMode = () => {
+    activatePermanentSession();
+    setAuthError(null);
+    onNotify(`Conexão permanente ativada diretamente para ${DEFAULT_PERMANENT_EMAIL}!`, 'success');
+  };
+
+  const handleCopyDomain = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(currentHostname);
+      setCopiedDomain(true);
+      setTimeout(() => setCopiedDomain(false), 3000);
+      onNotify(`Domínio "${currentHostname}" copiado para a área de transferência!`, 'info');
     }
   };
 
@@ -326,12 +352,12 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                 </p>
               </div>
 
-              {/* Official Google Sign In Button for permanent account */}
-              <div className="flex justify-center pt-1">
+              {/* Connection Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                 <button
                   onClick={handleSignIn}
                   disabled={isLoading}
-                  className="flex items-center gap-3 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-60"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-60"
                 >
                   <svg className="w-4 h-4 shrink-0 bg-white rounded-full p-0.5" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -339,9 +365,42 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({
                     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
                     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                   </svg>
-                  <span>{isLoading ? 'Conectando ao Google...' : `Conectar Permanentemente (${DEFAULT_PERMANENT_EMAIL})`}</span>
+                  <span>{isLoading ? 'Conectando...' : `Conectar Google Drive`}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleActivateDirectMode}
+                  title="Ativa o acesso permanente direto sem depender de pop-up OAuth (ideal para Vercel)"
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Ativar Conexão Direta (Vercel)</span>
                 </button>
               </div>
+
+              {/* Vercel / GitHub Domain Helper Info */}
+              {(isVercelEnvironment || authError) && (
+                <div className="mt-3 p-3 text-left rounded-lg bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-[11px] space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-blue-500" />
+                      <span>Diagnóstico de Conexão Vercel / GitHub</span>
+                    </span>
+                    <button
+                      onClick={handleCopyDomain}
+                      className="px-2 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-medium hover:bg-blue-200 transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Copy className="w-2.5 h-2.5" />
+                      <span>{copiedDomain ? 'Copiado!' : 'Copiar Domínio'}</span>
+                    </button>
+                  </div>
+                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    Domínio atual: <code className="font-mono text-zinc-900 dark:text-zinc-100 font-bold bg-white dark:bg-zinc-900 px-1 py-0.5 rounded">{currentHostname || 'localhost'}</code>.
+                    Para autenticação OAuth pop-up na Vercel, este domínio deve estar na lista de <span className="font-semibold">Domínios Autorizados</span> do Firebase Console. Se preferir navegar imediatamente, utilize o botão <span className="font-semibold text-emerald-600 dark:text-emerald-400">Ativar Conexão Direta (Vercel)</span> acima.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

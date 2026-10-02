@@ -1,23 +1,45 @@
 export type DocumentCategory = string;
 
 /**
- * Validates whether a category name consists exclusively of uppercase letters.
- * Categories with lowercase letters are strictly rejected and removed.
+ * Validates whether a category name starts with a number (e.g. '07 - LAMINAÇÃO', '10 - CORTE')
+ * or is 'TODOS'. Root categories MUST start with a number; machine names (KAMPF, ROTOMEC, etc.)
+ * are subcategories inside their respective numbered parent category.
  */
-export function isUpperCaseCategory(catName: string): boolean {
+export function isNumberedCategory(catName: string): boolean {
   if (!catName) return false;
-  if (catName === 'Todos' || catName === 'TODOS') return true;
-  const letters = catName.replace(/[^a-zA-ZÀ-ÿ]/g, '');
-  return letters.length > 0 && letters === letters.toUpperCase();
+  const trimmed = catName.trim();
+  if (trimmed === 'Todos' || trimmed === 'TODOS') return true;
+  return /^\d+/.test(trimmed);
 }
 
+// Backward compatibility alias: root categories must be numbered
+export function isUpperCaseCategory(catName: string): boolean {
+  return isNumberedCategory(catName);
+}
+
+/**
+ * Mapping from equipment / machine subcategory to official numbered parent category
+ */
+export const SUBCATEGORY_TO_PARENT_CATEGORY_MAP: Record<string, string> = {
+  'ROTOMEC': '07 - LAMINAÇÃO',
+  'Rotomec': '07 - LAMINAÇÃO',
+  'VAREX I': '08 - EXTRUSÃO',
+  'Varex I': '08 - EXTRUSÃO',
+  'VAREX II': '08 - EXTRUSÃO',
+  'Varex II': '08 - EXTRUSÃO',
+  'KAMPF I': '10 - CORTE',
+  'Kampf I': '10 - CORTE',
+  'KAMPF II': '10 - CORTE',
+  'Kampf II': '10 - CORTE',
+  'SUBESTAÇÃO': '13 - UTILIDADES',
+  'Subestação': '13 - UTILIDADES',
+};
+
 export const DEFAULT_TECHNICAL_CATEGORIES: DocumentCategory[] = [
-  'KAMPF I',
-  'KAMPF II',
-  'ROTOMEC',
-  'SUBESTAÇÃO',
-  'VAREX I',
-  'VAREX II',
+  '07 - LAMINAÇÃO',
+  '08 - EXTRUSÃO',
+  '10 - CORTE',
+  '13 - UTILIDADES',
 ];
 
 export const TECHNICAL_CATEGORIES = DEFAULT_TECHNICAL_CATEGORIES;

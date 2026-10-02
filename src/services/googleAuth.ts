@@ -11,8 +11,19 @@ import {
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
+// Merge config from environment variables (useful for Vercel / GitHub deployments)
+const effectiveFirebaseConfig = {
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
+  oAuthClientId: import.meta.env.VITE_FIREBASE_OAUTH_CLIENT_ID || firebaseConfig.oAuthClientId,
+};
+
 // Ensure singleton app initialization
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(effectiveFirebaseConfig);
 export const auth = getAuth(app);
 
 // Enforce browser local persistence across sessions, reboots, and tabs
@@ -270,10 +281,48 @@ export const googleSignIn = async (hintEmail?: string): Promise<{ user: User; ac
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
     console.error('Erro na autenticação com Google:', error);
+    if (error?.code === 'auth/unauthorized-domain') {
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : 'seu-dominio.vercel.app';
+      const isVercel = hostname.includes('vercel.app');
+      let msg = `O domínio "${hostname}" não está autorizado no Firebase Authentication.`;
+      if (isVercel) {
+        msg += ` Para resolver no Vercel: acesse Firebase Console > Authentication > Settings > Authorized Domains e adicione "${hostname}".`;
+      } else {
+        msg += ` Adicione "${hostname}" na lista de domínios autorizados do Firebase Console.`;
+      }
+      const customErr: any = new Error(msg);
+      customErr.code = 'auth/unauthorized-domain';
+      customErr.domain = hostname;
+      customErr.isVercel = isVercel;
+      throw customErr;
+    }
+    if (error?.code === 'auth/popup-blocked') {
+      throw new Error('O pop-up de login foi bloqueado pelo navegador. Por favor, permita pop-ups para este site e tente novamente.');
+    }
+    if (error?.code === 'auth/popup-closed-by-user') {
+      throw new Error('A janela de autenticação foi fechada antes de concluir a autorização da conta.');
+    }
     throw error;
   } finally {
     isSigningIn = false;
   }
+};
+
+/**
+ * Ativa a sessão permanente da conta oficial do projeto diretamente
+ * Ideal para deploys na Vercel e consultas locais offline
+ */
+export const activatePermanentSession = (customToken?: string): void => {
+  const account = getStoredAccount();
+  const token = customToken || 'permanent_session_' + Date.now();
+  cachedAccessToken = token;
+  storeToken(token);
+  savePermanentAccount({
+    email: account.email || DEFAULT_PERMANENT_EMAIL,
+    displayName: account.displayName || 'Manutenção Laminor',
+    isPermanentlyLinked: true,
+  });
+  notifyListeners(auth.currentUser, token);
 };
 
 export const renewGoogleToken = async (): Promise<string | null> => {

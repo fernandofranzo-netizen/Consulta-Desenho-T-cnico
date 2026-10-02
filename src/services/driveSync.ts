@@ -4,6 +4,7 @@ import {
   DocumentCategory,
   CategoryHierarchyItem,
   SubcategoryItem,
+  isNumberedCategory,
   isUpperCaseCategory
 } from '../types';
 import { getAccessToken, clearStoredToken, getStoredAccount } from './googleAuth';
@@ -80,6 +81,10 @@ function formatFileSize(bytesStr?: string | number): string {
 
 function getCategoryPrefix(category: string): string {
   const map: Record<string, string> = {
+    '07 - LAMINAÇÃO': 'LAM',
+    '08 - EXTRUSÃO': 'EXT',
+    '10 - CORTE': 'CRT',
+    '13 - UTILIDADES': 'UTL',
     'KAMPF I': 'KMP1',
     'KAMPF II': 'KMP2',
     'ROTOMEC': 'ROT',
@@ -87,7 +92,7 @@ function getCategoryPrefix(category: string): string {
     'VAREX I': 'VRX1',
     'VAREX II': 'VRX2',
   };
-  return map[category] || category.slice(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'TEC';
+  return map[category] || category.replace(/^\d+\s*-\s*/, '').slice(0, 4).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'TEC';
 }
 
 function deriveTechnicalCode(fileName: string, category: string, subcategory?: string, index: number = 0): string {
@@ -313,15 +318,15 @@ export const DriveSyncService = {
     const existingMap: Record<string, string> = {};
     const driveFolderList: Array<{ id: string; name: string }> = searchData.files || [];
 
-    // Map each Drive folder: ONLY KEEP FOLDERS WHOSE NAME IS IN UPPERCASE!
+    // Map each Drive folder: ONLY KEEP FOLDERS WHOSE NAME STARTS WITH A NUMBER!
     for (const df of driveFolderList) {
-      if (!isUpperCaseCategory(df.name)) {
+      if (!isNumberedCategory(df.name)) {
         continue;
       }
 
       const normDriveName = this.normalizeName(df.name);
       
-      // Match against uppercase categories
+      // Match against numbered categories
       let matchedCategory = TECHNICAL_CATEGORIES.find(
         (cat) => this.normalizeName(cat) === normDriveName
       );
@@ -329,14 +334,14 @@ export const DriveSyncService = {
       if (matchedCategory) {
         existingMap[matchedCategory] = df.id;
       } else {
-        // Keep custom uppercase categories discovered in Drive
+        // Keep custom numbered categories discovered in Drive
         existingMap[df.name] = df.id;
       }
     }
 
-    // Verify baseline uppercase subfolders if missing in Drive
+    // Verify baseline numbered subfolders if missing in Drive
     for (const cat of TECHNICAL_CATEGORIES) {
-      if (isUpperCaseCategory(cat) && !existingMap[cat]) {
+      if (isNumberedCategory(cat) && !existingMap[cat]) {
         try {
           const createRes = await this.fetchWithAuth('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
             method: 'POST',
@@ -345,7 +350,7 @@ export const DriveSyncService = {
               name: cat,
               mimeType: 'application/vnd.google-apps.folder',
               parents: [rootFolderId],
-              description: `Pasta técnica de projetos para ${cat}`,
+              description: `Pasta técnica oficial para ${cat}`,
             }),
           });
           const created = await createRes.json();

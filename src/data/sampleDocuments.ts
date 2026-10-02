@@ -6,7 +6,8 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'DWG-ROT-104',
     title: 'Conjunto Redutor Planetário de Impressão - Linha Rotomec',
     description: 'Desenho de conjunto mecânico mostrando eixo motriz, engrenagens planetárias helicoidais, mancais de rolamentos cônicos e selos mecânicos de vedação para impressora Rotomec.',
-    category: 'ROTOMEC',
+    category: '07 - LAMINAÇÃO',
+    subcategory: 'ROTOMEC',
     type: 'drawing',
     discipline: 'Mecânica / Transmissão de Potência',
     revision: 'Rev. 03',
@@ -234,7 +235,8 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'EL-SUB-203',
     title: 'Diagrama Unifilar Geral da Subestação Principal 13.8 kV / 440 V',
     description: 'Esquema elétrico unifilar com barramentos seccionados, disjuntores de vácuo, transformadores a seco 2.500 kVA, relés numéricos de proteção 50/51/87 e sistema de intertravamento Kirk.',
-    category: 'SUBESTAÇÃO',
+    category: '13 - UTILIDADES',
+    subcategory: 'SUBESTAÇÃO',
     type: 'drawing',
     discipline: 'Engenharia Elétrica de Potência',
     revision: 'Rev. 02',
@@ -444,7 +446,8 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'FTO-KMP1-501',
     title: 'Registro Fotográfico de END: Trinca por Fadiga em Munhão - Linha Kampf I',
     description: 'Fotografia técnica em alta definição de inspeção por Ensaio Não Destrutivo com Líquido Penetrante Fluorescente na Cortadeira / Rebobinadeira Kampf I.',
-    category: 'KAMPF I',
+    category: '10 - CORTE',
+    subcategory: 'KAMPF I',
     type: 'photo',
     discipline: 'Inspeção de Equipamentos & Ensaios Não Destrutivos (END)',
     revision: 'Relatório #841',
@@ -581,7 +584,8 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'FTO-VRX1-502',
     title: 'Termografia Infravermelha: Ponto Quente em Conexão CCM - Extrusora Varex I',
     description: 'Imagem radiométrica infravermelha com termômetro calibrado FLIR registrando sobreaquecimento térmico severo de 84.5°C na fase R do barramento alimentador da extrusora Varex I.',
-    category: 'VAREX I',
+    category: '08 - EXTRUSÃO',
+    subcategory: 'VAREX I',
     type: 'photo',
     discipline: 'Termografia & Preditiva Elétrica',
     revision: 'Termo #312',
@@ -713,7 +717,8 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     code: 'AUT-VRX2-601',
     title: 'Topologia em Anel Profinet e Distribuição de I/O do CLP - Varex II',
     description: 'Arquitetura de rede de automação industrial com anel de redundância MRP Profinet, CPU Siemens 1518-4 PN/DP, estações remotas ET 200SP, switches de campo Scalance para a linha Varex II.',
-    category: 'VAREX II',
+    category: '08 - EXTRUSÃO',
+    subcategory: 'VAREX II',
     type: 'drawing',
     discipline: 'Automação Industrial & Redes',
     revision: 'Rev. 02',
@@ -821,6 +826,62 @@ export const SAMPLE_DOCUMENTS: TechnicalDocument[] = [
     <text x="12" y="104" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">AUT-VRX2-601</text>
     <text x="290" y="52" font-family="sans-serif" font-size="9" fill="#64748b">ESCALA: S/E</text>
     <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 02</text>
+  </g>
+</svg>`
+    },
+    {
+      id: 'doc-corte-503',
+      code: 'DWG-KMP2-503',
+      title: 'Sistema de Facas Rotativas e Controle de Tensão - Linha Kampf II',
+      description: 'Desenho de conjunto do módulo de corte longitudinal, porta-facas pneumático e rolo oscilante de controle de tensão da rebobinadeira Kampf II.',
+      category: '10 - CORTE',
+      subcategory: 'KAMPF II',
+      type: 'drawing',
+      discipline: 'Mecânica / Corte e Rebobinamento',
+      revision: 'Rev. 01',
+      date: '05/09/2025',
+      author: 'Eng. Roberto Albuquerque (CREA 14892)',
+      approver: 'Eng. Carlos Mendonça (CREA 08912)',
+      scale: '1:5 (A1)',
+      status: 'Aprovado',
+      format: 'SVG Vector HD',
+      fileSize: '4.1 MB',
+      resolution: 'Vetor Infinito (300+ DPI)',
+      isOfflineCached: true,
+      equipmentCode: 'CRT-KMP-02',
+      tags: ['Corte', 'Kampf II', 'Faca Rotativa', 'Controle de Tensão', 'Rebobinadeira'],
+      specs: {
+        'Largura Útil': '2.200 mm',
+        'Velocidade Máxima': '800 m/min',
+        'Pressão Pneumática Facas': '6.0 bar',
+        'Tipo de Lâmina': 'Bisel Duplo Ø 150 mm Aço Rápido HSS'
+      },
+      notes: [
+        'Inspeção dimensional a cada 500 horas de operação.',
+        'Lubrificação dos guias lineares com graxa sintética grau NLGI 2.'
+      ],
+      annotations: [],
+      svgContent: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <rect width="1200" height="800" fill="#0f172a"/>
+  <rect x="20" y="20" width="1160" height="760" fill="none" stroke="#38bdf8" stroke-width="2"/>
+  <g transform="translate(600, 350)" text-anchor="middle">
+    <circle cx="0" cy="0" r="120" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+    <circle cx="0" cy="0" r="40" fill="#0f172a" stroke="#0ea5e9" stroke-width="2"/>
+    <line x1="-150" y1="0" x2="150" y2="0" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="8,4"/>
+    <line x1="0" y1="-150" x2="0" y2="150" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="8,4"/>
+    <text y="180" font-family="'JetBrains Mono', monospace" font-size="20" font-weight="bold" fill="#f8fafc">MÓDULO DE CORTE - KAMPF II</text>
+    <text y="210" font-family="sans-serif" font-size="13" fill="#94a3b8">PASTA: 10 - CORTE / KAMPF II</text>
+  </g>
+  <g transform="translate(730, 650)">
+    <rect x="0" y="0" width="440" height="120" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+    <line x1="0" y1="35" x2="440" y2="35" stroke="#0f172a" stroke-width="1.2"/>
+    <line x1="0" y1="75" x2="440" y2="75" stroke="#0f172a" stroke-width="1.2"/>
+    <line x1="280" y1="35" x2="280" y2="120" stroke="#0f172a" stroke-width="1.2"/>
+    <text x="12" y="24" font-family="sans-serif" font-weight="bold" font-size="13" fill="#1e3a8a">10 - CORTE / KAMPF II</text>
+    <text x="12" y="52" font-family="sans-serif" font-weight="bold" font-size="11" fill="#0f172a">SISTEMA DE FACAS ROTATIVAS</text>
+    <text x="12" y="104" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">DWG-KMP2-503</text>
+    <text x="290" y="52" font-family="sans-serif" font-size="9" fill="#64748b">ESCALA: 1:5</text>
+    <text x="290" y="104" font-family="sans-serif" font-size="9" fill="#64748b">REV. 01</text>
   </g>
 </svg>`
     }
